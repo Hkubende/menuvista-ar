@@ -3,20 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • Chicken Burger</title>
+  <title>MenuVista • Dish Preview</title>
 
-  <!-- Google model-viewer -->
+  <!-- model-viewer (WebXR/Scene Viewer/Quick Look wrapper) -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
 
   <style>
     :root { color-scheme: dark; }
-    body { margin: 0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; }
+    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; }
 
     model-viewer{
-      width:100vw;
-      height:100vh;
+      width:100vw; height:100vh;
       background:
         radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
         radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
@@ -25,23 +24,18 @@
 
     .topbar{
       position:absolute; top:14px; left:14px; right:14px;
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      display:flex; justify-content:space-between; gap:10px;
       pointer-events:none;
     }
-    .brand{
+    .chip{
       pointer-events:auto;
       padding:10px 12px; border-radius:14px;
-      background: rgba(0,0,0,.45); backdrop-filter: blur(10px);
+      background: rgba(0,0,0,.45);
       border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
       font-weight:800;
-    }
-    .pill{
-      pointer-events:auto;
-      padding:10px 12px; border-radius:999px;
-      background: rgba(0,0,0,.45); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.10);
-      font-size: 13px;
-      opacity:.9;
+      font-size:13px;
+      opacity:.95;
     }
 
     .panel{
@@ -50,7 +44,7 @@
       border: 1px solid rgba(255,255,255,.10);
       backdrop-filter: blur(12px);
       border-radius: 18px;
-      padding: 14px 14px 12px;
+      padding: 14px;
       display:flex; gap:12px; align-items:flex-end; justify-content:space-between;
     }
 
@@ -64,6 +58,7 @@
       padding: 10px 12px;
       font-weight: 900;
       cursor:pointer;
+      white-space: nowrap;
     }
     .primary{ background:#FF7A2F; color:#111; }
     .ghost{
@@ -71,28 +66,35 @@
       color:#fff;
       border:1px solid rgba(255,255,255,.14);
     }
+    button[disabled]{
+      opacity:.45;
+      cursor:not-allowed;
+    }
 
-    .hint{
+    .center-toast{
       position:absolute; left:50%; top:50%;
       transform: translate(-50%,-50%);
       padding: 10px 12px; border-radius: 14px;
       background: rgba(0,0,0,.55);
       border: 1px solid rgba(255,255,255,.10);
       backdrop-filter: blur(12px);
-      font-size: 13px; opacity: .95;
-      display:none;
+      font-size: 13px;
       max-width: 88vw;
       text-align:center;
+      display:none;
     }
-    .hint.show{ display:block; }
+    .center-toast.show{ display:block; }
+
+    a { color: #FFB084; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 
 <body>
 
   <div class="topbar">
-    <div class="brand">MenuVista</div>
-    <div class="pill">Move / pinch to scale • Tap “View in AR”</div>
+    <div class="chip">MenuVista</div>
+    <div id="supportChip" class="chip">Checking AR support…</div>
   </div>
 
   <model-viewer id="mv"
@@ -108,40 +110,131 @@
     ar-placement="floor">
   </model-viewer>
 
-  <div id="hint" class="hint show">Loading 3D model…</div>
+  <div id="toast" class="center-toast show">Loading 3D model…</div>
 
   <div class="panel">
     <div>
       <p class="title">Chicken Burger</p>
       <p class="meta"><span class="price">KSh 850</span> — Flame grilled with fresh lettuce</p>
-      <p class="meta">Tip: Use good lighting and point at a flat table surface.</p>
+      <p id="statusText" class="meta">Tip: You can still rotate & zoom in 3D on any phone.</p>
     </div>
     <div class="actions">
-      <button class="ghost" onclick="resetView()">Reset</button>
-      <button class="primary" onclick="document.getElementById('mv').activateAR()">View in AR</button>
+      <button class="ghost" id="btnReset">Reset</button>
+      <button class="primary" id="btnAR">View in AR</button>
     </div>
   </div>
 
   <script>
     const mv = document.getElementById('mv');
-    const hint = document.getElementById('hint');
+    const toast = document.getElementById('toast');
+    const btnAR = document.getElementById('btnAR');
+    const btnReset = document.getElementById('btnReset');
+    const supportChip = document.getElementById('supportChip');
+    const statusText = document.getElementById('statusText');
 
-    mv.addEventListener('load', () => {
-      hint.classList.remove('show');
-    });
+    // Helper: detect iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    mv.addEventListener('error', () => {
-      hint.textContent =
-        "Model failed to load. Check the file exists and the name matches exactly. " +
-        "Expected: Plate With Food.glb (spaces must be %20).";
-      hint.classList.add('show');
-    });
+    function setToast(msg, show=true){
+      toast.textContent = msg;
+      toast.classList.toggle('show', !!show);
+    }
 
-    function resetView() {
-      // Resets orbit + zoom (works in most modern model-viewer versions)
+    function setSupportChip(msg){
+      supportChip.textContent = msg;
+    }
+
+    // Reset camera view
+    btnReset.addEventListener('click', () => {
       mv.cameraOrbit = "0deg 75deg 2.5m";
       mv.fieldOfView = "30deg";
+    });
+
+    // AR button handler
+    btnAR.addEventListener('click', async () => {
+      try {
+        // model-viewer will handle:
+        // - WebXR (in Chrome Android)
+        // - Scene Viewer fallback (Android)
+        // - Quick Look (iOS)
+        await mv.activateAR();
+      } catch (e) {
+        // If activateAR fails, keep user in 3D viewer mode
+        setToast("AR could not start on this device. Using 3D preview instead.", true);
+        console.error(e);
+      }
+    });
+
+    // Show/hide loading based on model load
+    mv.addEventListener('load', () => setToast("", false));
+    mv.addEventListener('error', () => {
+      setToast("3D model failed to load. Check filename/path (case-sensitive) and try again.", true);
+      btnAR.disabled = true;
+      setSupportChip("Model load error");
+      statusText.textContent = "Fix the model file name/path, then refresh.";
+    });
+
+    // Smart AR capability detection
+    async function detectARSupport(){
+      // 1) WebXR AR session support (best)
+      const hasWebXR = !!navigator.xr;
+      let webxrAR = false;
+      if (hasWebXR && navigator.xr.isSessionSupported) {
+        try {
+          webxrAR = await navigator.xr.isSessionSupported('immersive-ar');
+        } catch (_) {}
+      }
+
+      // 2) model-viewer reports which AR mode is actually available
+      // available: true/false and mode: 'webxr' | 'scene-viewer' | 'quick-look' | null
+      let mvAvailable = false;
+      let mvMode = null;
+      try {
+        const ar = mv.canActivateAR; // boolean
+        mvAvailable = !!ar;
+      } catch (_) {}
+
+      // Heuristic messaging
+      if (webxrAR) {
+        btnAR.disabled = false;
+        setSupportChip("AR supported (WebXR)");
+        statusText.textContent = "Your phone supports full AR placement. Tap “View in AR”.";
+        return;
+      }
+
+      // iOS: Quick Look needs Safari + USDZ to be truly reliable.
+      // model-viewer can still launch Quick Look if supported by the device/browser.
+      if (isIOS) {
+        // Keep button enabled if model-viewer thinks it can activate AR
+        btnAR.disabled = !mv.canActivateAR;
+        setSupportChip(btnAR.disabled ? "AR limited on this iPhone" : "AR supported (iOS)");
+        statusText.innerHTML = btnAR.disabled
+          ? "This iPhone/browser may not support AR launch. 3D preview will still work."
+          : "Tap “View in AR” to launch iOS AR. For best results on iOS, provide a USDZ model too.";
+        return;
+      }
+
+      // Android but no WebXR AR: might still use Scene Viewer (requires Google Play Services for AR / ARCore)
+      // model-viewer will route to Scene Viewer if supported.
+      if (mv.canActivateAR) {
+        btnAR.disabled = false;
+        setSupportChip("AR available (Scene Viewer)");
+        statusText.innerHTML =
+          "Tap “View in AR”. If prompted, install <b>Google Play Services for AR</b> (ARCore). " +
+          "If you can’t install it, use the 3D preview.";
+        return;
+      }
+
+      // No AR
+      btnAR.disabled = true;
+      setSupportChip("AR not supported");
+      statusText.textContent =
+        "This phone doesn’t support AR placement. You can still rotate/zoom the 3D dish normally.";
     }
+
+    // Run detection after a short delay so model-viewer initializes
+    setTimeout(detectARSupport, 400);
   </script>
 
 </body>
