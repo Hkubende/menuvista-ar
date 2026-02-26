@@ -3,174 +3,155 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • AR Viewer</title>
-
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
-
+  <title>MenuVista • Restaurant Menu</title>
   <style>
     :root { color-scheme: dark; }
-    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; color:#fff; }
-    model-viewer{
-      width:100vw; height:100vh;
-      background:
-        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
-        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
-        #0b0b10;
+    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+    .wrap{max-width:1000px;margin:0 auto;padding:18px}
+    .brand{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .logo{font-weight:900;font-size:18px}
+    .sub{opacity:.8;font-size:13px;margin-top:4px}
+    .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px}
+    .search{width:100%;margin:14px 0 6px}
+    input{
+      width:100%;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);color:#fff;outline:none;
+      font-weight:700;
     }
-    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:10px;justify-content:space-between;pointer-events:none;z-index:5}
-    .chip{pointer-events:auto;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(10px);font-weight:900;font-size:13px}
-    .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(12px);font-size:13px;max-width:88vw;text-align:center;display:none;z-index:6}
-    .toast.show{display:block}
-    .panel{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(12px);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:flex-end;justify-content:space-between;z-index:5}
-    .title{font-size:18px;font-weight:900;margin:0 0 6px}
-    .meta{margin:0;opacity:.9;font-size:13px;line-height:1.35}
+    h2{margin:18px 0 10px;font-size:16px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media (min-width: 860px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.35);
+      border-radius:18px;overflow:hidden;
+      cursor:pointer; transition:transform .12s ease;
+    }
+    .card:hover{transform:translateY(-2px)}
+    .thumb{height:140px;background:rgba(255,255,255,.03);background-size:cover;background-position:center}
+    .body{padding:12px}
+    .name{font-weight:900;margin:0 0 4px}
+    .desc{margin:0;opacity:.85;font-size:12.5px;line-height:1.3}
+    .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
     .price{font-weight:900;color:#FF7A2F}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    button{border:0;border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
-    .primary{background:#FF7A2F;color:#111}
-    .ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14)}
-    button[disabled]{opacity:.45;cursor:not-allowed}
+    .btn{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px}
+    .views{opacity:.7;font-size:12px}
+    .footer{opacity:.7;font-size:12px;margin-top:18px}
   </style>
 </head>
-
 <body>
-  <div class="topbar">
-    <div class="chip" onclick="location.href='index.html'" style="cursor:pointer">← MenuVista Menu</div>
-    <div id="supportChip" class="chip">Checking AR support…</div>
-  </div>
-
-  <model-viewer id="mv"
-    src=""
-    camera-controls
-    auto-rotate
-    rotation-per-second="20deg"
-    shadow-intensity="1"
-    environment-image="neutral"
-    exposure="1.0"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    ar-placement="floor">
-  </model-viewer>
-
-  <div id="toast" class="toast show">Loading 3D model…</div>
-
-  <div class="panel">
-    <div style="max-width:58ch">
-      <p class="title" id="dishName">Loading…</p>
-      <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
-      <p class="meta" id="statusText">Tip: 3D preview works on all phones. AR works only on supported devices.</p>
+  <div class="wrap">
+    <div class="brand">
+      <div>
+        <div class="logo">MenuVista • Demo Restaurant</div>
+        <div class="sub">Tap a dish to preview it in 3D/AR on your table. Swipe in viewer to change dishes.</div>
+      </div>
+      <div class="pill">QR → Menu</div>
     </div>
-    <div class="actions">
-      <button class="ghost" id="btnReset">Reset</button>
-      <button class="primary" id="btnAR">View in AR</button>
+
+    <div class="search">
+      <input id="q" placeholder="Search dishes (e.g., burger, fries)..." />
+    </div>
+
+    <div id="menu"></div>
+
+    <div class="footer">
+      Analytics note: views are stored in the user’s browser (localStorage) for this demo.
     </div>
   </div>
 
   <script>
+    // ✅ YOUR EXACT FILE PATHS (case-sensitive!)
     const dishes = [
-      { id:"fastfood", name:"Fast Food Feast", price:"KSh 1,250", desc:"AR demo dish (Meshy)", model:"Meshy_AI_Fast_Food_Feast_foo_0226105830_texture.glb" },
-      { id:"studio",   name:"Studio Food",     price:"KSh 950",  desc:"AR demo dish (Meshy)", model: encodeURIComponent("Meshy_AI_Fotografia_de_estúdi_0226105900_texture.glb") },
-      { id:"hyper",    name:"Hyper Realistic", price:"KSh 1,400", desc:"AR demo dish (Meshy)", model:"Meshy_AI__food_Hyper_realist_0226105800_texture.glb" }
+      {
+        id:"burger",
+        cat:"Mains",
+        name:"Chicken Burger",
+        price:"KSh 850",
+        desc:"Grilled chicken patty with toppings",
+        model:"models/burger.glb",
+        thumb:"Images/burger.png"
+      },
+      {
+        id:"chicken",
+        cat:"Mains",
+        name:"Chicken Meal",
+        price:"KSh 950",
+        desc:"Chicken dish preview",
+        model:"models/chicken.glb",
+        thumb:"Images/chicken.png"
+      },
+      {
+        id:"fries",
+        cat:"Sides",
+        name:"Fries",
+        price:"KSh 350",
+        desc:"Crispy fries",
+        // IMPORTANT: needs GLB (convert fries.fbx -> fries.glb)
+        model:"models/fries.glb",
+        thumb:"Images/fries.png"
+      }
     ];
 
-    const mv = document.getElementById('mv');
-    const toast = document.getElementById('toast');
-    const btnAR = document.getElementById('btnAR');
-    const btnReset = document.getElementById('btnReset');
-    const supportChip = document.getElementById('supportChip');
-    const statusText = document.getElementById('statusText');
-    const dishName = document.getElementById('dishName');
-    const dishPrice = document.getElementById('dishPrice');
-    const dishDesc = document.getElementById('dishDesc');
+    const cats = [...new Set(dishes.map(d => d.cat))];
+    const menuEl = document.getElementById("menu");
+    const q = document.getElementById("q");
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const viewsKey = (id) => `mv_views_${id}`;
+    const getViews = (id) => parseInt(localStorage.getItem(viewsKey(id)) || "0", 10);
 
-    function setToast(msg, show=true){
-      toast.textContent = msg;
-      toast.classList.toggle('show', !!show);
-    }
-    function setSupportChip(msg){ supportChip.textContent = msg; }
-
-    function getDishIdFromURL(){
-      const p = new URLSearchParams(location.search);
-      return p.get("dish") || "fastfood";
+    function openDish(id){
+      location.href = `ar.html?dish=${encodeURIComponent(id)}`;
     }
 
-    function loadDishById(id){
-      const d = dishes.find(x => x.id === id) || dishes[0];
+    function render(){
+      const term = q.value.trim().toLowerCase();
+      menuEl.innerHTML = "";
 
-      dishName.textContent = d.name;
-      dishPrice.textContent = d.price;
-      dishDesc.textContent = "— " + d.desc;
+      cats.forEach(cat => {
+        const section = document.createElement("div");
+        const title = document.createElement("h2");
+        title.textContent = cat;
+        section.appendChild(title);
 
-      setToast("Loading 3D model…", true);
-      mv.src = d.model;
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        dishes
+          .filter(d => d.cat === cat)
+          .filter(d => !term || (d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term)))
+          .forEach(d => {
+            const v = getViews(d.id);
+
+            const card = document.createElement("div");
+            card.className = "card";
+            card.onclick = () => openDish(d.id);
+
+            card.innerHTML = `
+              <div class="thumb" style="background-image:url('${d.thumb}')"></div>
+              <div class="body">
+                <p class="name">${d.name}</p>
+                <p class="desc">${d.desc}</p>
+                <div class="row">
+                  <div>
+                    <div class="price">${d.price}</div>
+                    <div class="views">${v} view${v===1?"":"s"}</div>
+                  </div>
+                  <div class="btn">Preview in AR</div>
+                </div>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+
+        section.appendChild(grid);
+        menuEl.appendChild(section);
+      });
     }
 
-    btnReset.addEventListener('click', () => {
-      mv.cameraOrbit = "0deg 75deg 2.5m";
-      mv.fieldOfView = "30deg";
-    });
-
-    btnAR.addEventListener('click', async () => {
-      try { await mv.activateAR(); }
-      catch(e){
-        setToast("AR could not start on this device. Using 3D preview instead.", true);
-        console.error(e);
-      }
-    });
-
-    mv.addEventListener('load', () => setToast("", false));
-    mv.addEventListener('error', () => {
-      setToast("Model failed to load. Check filename/path (case-sensitive) and refresh.", true);
-      btnAR.disabled = true;
-      setSupportChip("Model load error");
-      statusText.textContent = "Fix model file path/name, then refresh (Ctrl+Shift+R).";
-    });
-
-    async function detectARSupport(){
-      let webxrAR = false;
-      if (navigator.xr && navigator.xr.isSessionSupported) {
-        try { webxrAR = await navigator.xr.isSessionSupported('immersive-ar'); } catch(_) {}
-      }
-      const mvAR = !!mv.canActivateAR;
-
-      if (webxrAR) {
-        btnAR.disabled = false;
-        setSupportChip("AR supported (WebXR)");
-        statusText.textContent = "Full AR placement supported. Tap “View in AR”.";
-        return;
-      }
-
-      if (isIOS) {
-        btnAR.disabled = !mvAR;
-        setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)");
-        statusText.textContent = btnAR.disabled
-          ? "AR may not be available on this iPhone/browser. 3D preview still works."
-          : "Tap “View in AR”. (For best iPhone AR, add USDZ later.)";
-        return;
-      }
-
-      if (mvAR) {
-        btnAR.disabled = false;
-        setSupportChip("AR available (Android)");
-        statusText.textContent =
-          "Tap “View in AR”. If prompted, install Google Play Services for AR (ARCore).";
-        return;
-      }
-
-      btnAR.disabled = true;
-      setSupportChip("AR not supported");
-      statusText.textContent =
-        "This phone doesn’t support AR placement. Rotate/zoom the 3D dish normally.";
-    }
-
-    // INIT
-    loadDishById(getDishIdFromURL());
-    setTimeout(detectARSupport, 500);
+    q.addEventListener("input", render);
+    render();
   </script>
 </body>
 </html>
