@@ -1,57 +1,148 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>MenuVista AR Dish</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MenuVista • Chicken Burger</title>
 
-  <!-- Model Viewer Library -->
+  <!-- Google model-viewer -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
+    :root { color-scheme: dark; }
+    body { margin: 0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; }
+
+    model-viewer{
+      width:100vw;
+      height:100vh;
+      background:
+        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
+        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
+        #0b0b10;
     }
 
-    .info {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      padding: 15px;
-      text-align: center;
+    .topbar{
+      position:absolute; top:14px; left:14px; right:14px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      pointer-events:none;
+    }
+    .brand{
+      pointer-events:auto;
+      padding:10px 12px; border-radius:14px;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.10);
+      font-weight:800;
+    }
+    .pill{
+      pointer-events:auto;
+      padding:10px 12px; border-radius:999px;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size: 13px;
+      opacity:.9;
     }
 
-    model-viewer {
-      width: 100vw;
-      height: 100vh;
+    .panel{
+      position:absolute; left:14px; right:14px; bottom:14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      display:flex; gap:12px; align-items:flex-end; justify-content:space-between;
     }
+
+    .title{ font-size:18px; font-weight:900; margin:0 0 6px; }
+    .meta{ margin:0; opacity:.9; font-size:13px; line-height:1.35; }
+    .price{ font-weight:900; }
+
+    .actions{ display:flex; gap:10px; }
+    button{
+      border:0; border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor:pointer;
+    }
+    .primary{ background:#FF7A2F; color:#111; }
+    .ghost{
+      background: rgba(255,255,255,.10);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.14);
+    }
+
+    .hint{
+      position:absolute; left:50%; top:50%;
+      transform: translate(-50%,-50%);
+      padding: 10px 12px; border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(12px);
+      font-size: 13px; opacity: .95;
+      display:none;
+      max-width: 88vw;
+      text-align:center;
+    }
+    .hint.show{ display:block; }
   </style>
 </head>
 
 <body>
 
-<model-viewer
-  src="Plate With Food.gbl"
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  camera-controls
-  auto-rotate
-  shadow-intensity="1"
-  environment-image="neutral"
-  scale="1 1 1"
-  placement="floor">
+  <div class="topbar">
+    <div class="brand">MenuVista</div>
+    <div class="pill">Move / pinch to scale • Tap “View in AR”</div>
+  </div>
 
-</model-viewer>
+  <model-viewer id="mv"
+    src="Plate%20With%20Food.glb"
+    camera-controls
+    auto-rotate
+    rotation-per-second="20deg"
+    shadow-intensity="1"
+    environment-image="neutral"
+    exposure="1.0"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    ar-placement="floor">
+  </model-viewer>
 
-<div class="info">
-  <h2>Chicken Burger</h2>
-  <p>KSh 850 — Flame grilled with fresh lettuce</p>
-</div>
+  <div id="hint" class="hint show">Loading 3D model…</div>
+
+  <div class="panel">
+    <div>
+      <p class="title">Chicken Burger</p>
+      <p class="meta"><span class="price">KSh 850</span> — Flame grilled with fresh lettuce</p>
+      <p class="meta">Tip: Use good lighting and point at a flat table surface.</p>
+    </div>
+    <div class="actions">
+      <button class="ghost" onclick="resetView()">Reset</button>
+      <button class="primary" onclick="document.getElementById('mv').activateAR()">View in AR</button>
+    </div>
+  </div>
+
+  <script>
+    const mv = document.getElementById('mv');
+    const hint = document.getElementById('hint');
+
+    mv.addEventListener('load', () => {
+      hint.classList.remove('show');
+    });
+
+    mv.addEventListener('error', () => {
+      hint.textContent =
+        "Model failed to load. Check the file exists and the name matches exactly. " +
+        "Expected: Plate With Food.glb (spaces must be %20).";
+      hint.classList.add('show');
+    });
+
+    function resetView() {
+      // Resets orbit + zoom (works in most modern model-viewer versions)
+      mv.cameraOrbit = "0deg 75deg 2.5m";
+      mv.fieldOfView = "30deg";
+    }
+  </script>
 
 </body>
 </html>
