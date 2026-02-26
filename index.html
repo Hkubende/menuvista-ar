@@ -3,16 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • Dish Preview</title>
+  <title>MenuVista • AR Menu</title>
 
-  <!-- model-viewer (WebXR/Scene Viewer/Quick Look wrapper) -->
   <script type="module"
     src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
   </script>
 
   <style>
     :root { color-scheme: dark; }
-    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; }
+    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; color:#fff; }
 
     model-viewer{
       width:100vw; height:100vh;
@@ -24,8 +23,9 @@
 
     .topbar{
       position:absolute; top:14px; left:14px; right:14px;
-      display:flex; justify-content:space-between; gap:10px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
       pointer-events:none;
+      z-index: 5;
     }
     .chip{
       pointer-events:auto;
@@ -33,10 +33,25 @@
       background: rgba(0,0,0,.45);
       border: 1px solid rgba(255,255,255,.10);
       backdrop-filter: blur(10px);
-      font-weight:800;
+      font-weight:900;
       font-size:13px;
       opacity:.95;
     }
+
+    .toast{
+      position:absolute; left:50%; top:50%;
+      transform: translate(-50%,-50%);
+      padding: 10px 12px; border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      max-width: 88vw;
+      text-align:center;
+      display:none;
+      z-index: 6;
+    }
+    .toast.show{ display:block; }
 
     .panel{
       position:absolute; left:14px; right:14px; bottom:14px;
@@ -46,13 +61,13 @@
       border-radius: 18px;
       padding: 14px;
       display:flex; gap:12px; align-items:flex-end; justify-content:space-between;
+      z-index: 5;
     }
-
     .title{ font-size:18px; font-weight:900; margin:0 0 6px; }
     .meta{ margin:0; opacity:.9; font-size:13px; line-height:1.35; }
-    .price{ font-weight:900; }
+    .price{ font-weight:900; color:#FF7A2F; }
 
-    .actions{ display:flex; gap:10px; }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
     button{
       border:0; border-radius: 14px;
       padding: 10px 12px;
@@ -66,27 +81,29 @@
       color:#fff;
       border:1px solid rgba(255,255,255,.14);
     }
+    .menuRow{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .pillBtn{
+      background: rgba(255,255,255,.10);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.14);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .pillBtn.active{
+      background: rgba(255,122,47,.18);
+      border-color: rgba(255,122,47,.55);
+    }
     button[disabled]{
       opacity:.45;
       cursor:not-allowed;
     }
 
-    .center-toast{
-      position:absolute; left:50%; top:50%;
-      transform: translate(-50%,-50%);
-      padding: 10px 12px; border-radius: 14px;
-      background: rgba(0,0,0,.55);
-      border: 1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(12px);
-      font-size: 13px;
-      max-width: 88vw;
-      text-align:center;
-      display:none;
-    }
-    .center-toast.show{ display:block; }
-
-    a { color: #FFB084; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .leftBlock{ max-width: 58ch; }
   </style>
 </head>
 
@@ -98,7 +115,7 @@
   </div>
 
   <model-viewer id="mv"
-    src="Plate%20With%20Food.glb"
+    src=""
     camera-controls
     auto-rotate
     rotation-per-second="20deg"
@@ -110,14 +127,17 @@
     ar-placement="floor">
   </model-viewer>
 
-  <div id="toast" class="center-toast show">Loading 3D model…</div>
+  <div id="toast" class="toast show">Loading 3D model…</div>
 
   <div class="panel">
-    <div>
-      <p class="title">Chicken Burger</p>
-      <p class="meta"><span class="price">KSh 850</span> — Flame grilled with fresh lettuce</p>
-      <p id="statusText" class="meta">Tip: You can still rotate & zoom in 3D on any phone.</p>
+    <div class="leftBlock">
+      <p class="title" id="dishName">Loading…</p>
+      <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
+      <p class="meta" id="statusText">Tip: 3D preview works on all phones. AR works only on supported devices.</p>
+
+      <div class="menuRow" id="menuRow"></div>
     </div>
+
     <div class="actions">
       <button class="ghost" id="btnReset">Reset</button>
       <button class="primary" id="btnAR">View in AR</button>
@@ -125,14 +145,50 @@
   </div>
 
   <script>
+    // =========================
+    // 1) DISH LIST (YOUR FILES)
+    // =========================
+    // NOTE: Filenames with spaces/special chars MUST be URL-encoded.
+    const dishes = [
+      {
+        id: "fastfood",
+        name: "Fast Food Feast",
+        price: "KSh 1,250",
+        desc: "AR demo dish (Meshy)",
+        model: "chicken.glb"
+      },
+      {
+        id: "studio",
+        name: "Studio Food Photo",
+        price: "KSh 950",
+        desc: "AR demo dish (Meshy)",
+        // Contains accented characters -> MUST be encoded safely
+        model: encodeURIComponent("Meshy_AI_Fotografia_de_estúdi_0226105900_texture.glb")
+      },
+      {
+        id: "hyper",
+        name: "Hyper Realistic Food",
+        price: "KSh 1,400",
+        desc: "AR demo dish (Meshy)",
+        model: "Plate With Food.glb"
+      }
+    ];
+
+    // =========================
+    // 2) ELEMENTS
+    // =========================
     const mv = document.getElementById('mv');
     const toast = document.getElementById('toast');
     const btnAR = document.getElementById('btnAR');
     const btnReset = document.getElementById('btnReset');
     const supportChip = document.getElementById('supportChip');
     const statusText = document.getElementById('statusText');
+    const dishName = document.getElementById('dishName');
+    const dishPrice = document.getElementById('dishPrice');
+    const dishDesc = document.getElementById('dishDesc');
+    const menuRow = document.getElementById('menuRow');
 
-    // Helper: detect iOS
+    // iOS detect (for messaging)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
@@ -140,101 +196,134 @@
       toast.textContent = msg;
       toast.classList.toggle('show', !!show);
     }
+    function setSupportChip(msg){ supportChip.textContent = msg; }
 
-    function setSupportChip(msg){
-      supportChip.textContent = msg;
+    // =========================
+    // 3) BUILD MENU BUTTONS
+    // =========================
+    function buildMenuButtons(){
+      menuRow.innerHTML = "";
+      dishes.forEach((d, idx) => {
+        const b = document.createElement("button");
+        b.className = "pillBtn";
+        b.textContent = d.name;
+        b.onclick = () => switchDish(idx);
+        b.dataset.idx = String(idx);
+        menuRow.appendChild(b);
+      });
+    }
+    function setActiveButton(idx){
+      [...menuRow.querySelectorAll("button")].forEach(btn => btn.classList.remove("active"));
+      const active = menuRow.querySelector(`button[data-idx="${idx}"]`);
+      if(active) active.classList.add("active");
     }
 
-    // Reset camera view
+    // =========================
+    // 4) SWITCH DISH
+    // =========================
+    let currentIndex = 0;
+
+    function switchDish(idx){
+      currentIndex = idx;
+      const d = dishes[idx];
+
+      // UI update
+      dishName.textContent = d.name;
+      dishPrice.textContent = d.price;
+      dishDesc.textContent = "— " + d.desc;
+      setActiveButton(idx);
+
+      // Model load
+      setToast("Loading 3D model…", true);
+      mv.src = d.model;
+    }
+
+    // =========================
+    // 5) BUTTONS
+    // =========================
     btnReset.addEventListener('click', () => {
       mv.cameraOrbit = "0deg 75deg 2.5m";
       mv.fieldOfView = "30deg";
     });
 
-    // AR button handler
     btnAR.addEventListener('click', async () => {
       try {
-        // model-viewer will handle:
-        // - WebXR (in Chrome Android)
-        // - Scene Viewer fallback (Android)
-        // - Quick Look (iOS)
         await mv.activateAR();
       } catch (e) {
-        // If activateAR fails, keep user in 3D viewer mode
         setToast("AR could not start on this device. Using 3D preview instead.", true);
         console.error(e);
       }
     });
 
-    // Show/hide loading based on model load
+    // =========================
+    // 6) LOAD/ERROR HANDLING
+    // =========================
     mv.addEventListener('load', () => setToast("", false));
+
     mv.addEventListener('error', () => {
-      setToast("3D model failed to load. Check filename/path (case-sensitive) and try again.", true);
+      // Very common causes: wrong filename, spaces not encoded, file not in same folder, etc.
+      setToast(
+        "Model failed to load. Check the .glb filename/path (case-sensitive) and that it exists in this folder.",
+        true
+      );
+      // Keep AR disabled if we can't even load the model
       btnAR.disabled = true;
       setSupportChip("Model load error");
-      statusText.textContent = "Fix the model file name/path, then refresh.";
+      statusText.textContent = "Fix model file path/name, then refresh (Ctrl+Shift+R).";
     });
 
-    // Smart AR capability detection
+    // =========================
+    // 7) SMART AR SUPPORT DETECTION
+    // =========================
     async function detectARSupport(){
-      // 1) WebXR AR session support (best)
-      const hasWebXR = !!navigator.xr;
+      // Best: WebXR immersive-ar support
       let webxrAR = false;
-      if (hasWebXR && navigator.xr.isSessionSupported) {
-        try {
-          webxrAR = await navigator.xr.isSessionSupported('immersive-ar');
-        } catch (_) {}
+      if (navigator.xr && navigator.xr.isSessionSupported) {
+        try { webxrAR = await navigator.xr.isSessionSupported('immersive-ar'); } catch(_) {}
       }
 
-      // 2) model-viewer reports which AR mode is actually available
-      // available: true/false and mode: 'webxr' | 'scene-viewer' | 'quick-look' | null
-      let mvAvailable = false;
-      let mvMode = null;
-      try {
-        const ar = mv.canActivateAR; // boolean
-        mvAvailable = !!ar;
-      } catch (_) {}
+      // model-viewer capability
+      const mvAR = !!mv.canActivateAR;
 
-      // Heuristic messaging
       if (webxrAR) {
         btnAR.disabled = false;
         setSupportChip("AR supported (WebXR)");
-        statusText.textContent = "Your phone supports full AR placement. Tap “View in AR”.";
+        statusText.textContent = "Full AR placement supported. Tap “View in AR”.";
         return;
       }
 
-      // iOS: Quick Look needs Safari + USDZ to be truly reliable.
-      // model-viewer can still launch Quick Look if supported by the device/browser.
       if (isIOS) {
-        // Keep button enabled if model-viewer thinks it can activate AR
-        btnAR.disabled = !mv.canActivateAR;
-        setSupportChip(btnAR.disabled ? "AR limited on this iPhone" : "AR supported (iOS)");
-        statusText.innerHTML = btnAR.disabled
-          ? "This iPhone/browser may not support AR launch. 3D preview will still work."
-          : "Tap “View in AR” to launch iOS AR. For best results on iOS, provide a USDZ model too.";
+        // iOS: Quick Look often prefers USDZ; GLB can still show 3D and sometimes launch AR depending on browser
+        btnAR.disabled = !mvAR;
+        setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)");
+        statusText.textContent = btnAR.disabled
+          ? "AR launch may not be available on this iPhone/browser. 3D preview still works."
+          : "Tap “View in AR”. For best iPhone AR reliability, provide USDZ too.";
         return;
       }
 
-      // Android but no WebXR AR: might still use Scene Viewer (requires Google Play Services for AR / ARCore)
-      // model-viewer will route to Scene Viewer if supported.
-      if (mv.canActivateAR) {
+      // Android: may use Scene Viewer (often triggers Google Play Services for AR install)
+      if (mvAR) {
         btnAR.disabled = false;
-        setSupportChip("AR available (Scene Viewer)");
-        statusText.innerHTML =
-          "Tap “View in AR”. If prompted, install <b>Google Play Services for AR</b> (ARCore). " +
-          "If you can’t install it, use the 3D preview.";
+        setSupportChip("AR available (Android)");
+        statusText.textContent =
+          "Tap “View in AR”. If prompted, install Google Play Services for AR (ARCore).";
         return;
       }
 
-      // No AR
+      // No AR available
       btnAR.disabled = true;
       setSupportChip("AR not supported");
       statusText.textContent =
-        "This phone doesn’t support AR placement. You can still rotate/zoom the 3D dish normally.";
+        "This phone doesn’t support AR placement. Rotate/zoom the 3D dish normally.";
     }
 
-    // Run detection after a short delay so model-viewer initializes
-    setTimeout(detectARSupport, 400);
+    // =========================
+    // 8) INIT
+    // =========================
+    buildMenuButtons();
+    switchDish(0);               // load first dish
+    setTimeout(detectARSupport, 500);
   </script>
 
 </body>
