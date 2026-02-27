@@ -41,7 +41,7 @@
     .modal{
       position:fixed;left:50%;top:50%;
       transform:translate(-50%,-50%);
-      width:min(520px, 92vw);
+      width:min(540px, 92vw);
       background:rgba(10,10,16,.95);
       border:1px solid rgba(255,255,255,.12);
       border-radius:18px;
@@ -61,9 +61,9 @@
       background:rgba(0,0,0,.25);
       margin-top:10px;
     }
-    .small{opacity:.8;font-size:12px;line-height:1.35}
-    .copyBtn{margin-top:8px}
+    .small{opacity:.85;font-size:12px;line-height:1.35}
     .code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    .ctaRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
   </style>
 </head>
 
@@ -122,14 +122,18 @@
 
       <div class="box">
         <div style="font-weight:900;margin-bottom:6px">Pay via M-Pesa (Manual)</div>
-        <div class="small" id="mpesaHow">
-          1) Go to M-Pesa → <b>Lipa na M-Pesa</b><br/>
-          2) Choose <b>Buy Goods and Services</b> (Till) or <b>Paybill</b><br/>
-          3) Enter the number + amount + reference below<br/>
-          4) After paying, tap <b>Send Confirmation</b> (WhatsApp)
+        <div class="small">
+          1) M-Pesa → <b>Lipa na M-Pesa</b><br/>
+          2) Choose <b>Buy Goods</b> (Till) or <b>Paybill</b><br/>
+          3) Enter business number, amount, and reference below<br/>
+          4) Tap <b>Send Confirmation</b> (WhatsApp)
         </div>
 
         <div class="kv" style="margin-top:10px">
+          <div class="small">Method</div>
+          <div class="code" id="methodOut">TILL</div>
+        </div>
+        <div class="kv">
           <div class="small">Till / Paybill</div>
           <div class="code" id="bizNo">123456</div>
         </div>
@@ -142,38 +146,51 @@
           <div class="code" id="amtOut">KSh 0</div>
         </div>
 
-        <button class="ghost copyBtn" id="copyAll">Copy payment details</button>
+        <button class="ghost" id="copyAll">Copy payment details</button>
       </div>
 
-      <div class="ctaRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <div class="ctaRow">
         <button class="wa" id="sendConfirm" style="flex:1">Send Confirmation on WhatsApp</button>
         <button class="primary" id="placeOrder" style="flex:1">Place Order (WhatsApp)</button>
       </div>
 
       <div class="small" style="margin-top:10px;opacity:.75">
-        Note: STK Push requires a backend (Daraja API). This demo uses manual M-Pesa instructions + WhatsApp proof.
+        STK Push needs a backend (Safaricom Daraja API). This MVP uses manual M-Pesa + WhatsApp proof.
       </div>
     </div>
   </div>
 
   <script>
-    // ========= DISH CATALOG =========
-    const dishes = [
-      { id:"burger",  name:"Chicken Burger", price:850, desc:"Grilled chicken patty with toppings", model:"models/burger.glb" },
-      { id:"chicken", name:"Chicken Meal",   price:950, desc:"Chicken dish preview",               model:"models/chicken.glb" },
-      { id:"fries",   name:"Fries",          price:350, desc:"Crispy fries",                      model:"models/fries.glb" }
-    ];
+    // ========= CONFIG =========
+    const CART_KEY = "mv_cart_v1";
 
     // WhatsApp business number (no +)
     const WHATSAPP_NUMBER = "254745482764"; // CHANGE THIS
 
-    // M-Pesa manual details (set one method for now)
-    const MPESA_METHOD = "TILL";           // "TILL" or "PAYBILL"
-    const MPESA_BIZ_NO = "123456";         // Till number or Paybill number
-    // If PAYBILL, you can later add account rules. For now we use Reference as account.
+    // M-Pesa manual details
+    const MPESA_METHOD = "TILL";   // "TILL" or "PAYBILL"
+    const MPESA_BIZ_NO = "123456"; // your Till or Paybill number
 
-    // Cart storage key (must match index.html)
-    const CART_KEY = "mv_cart_v1";
+    // ========= DISH CATALOG (same ids as index.html) =========
+    const dishes = [
+      { id:"a_roast_chickenpoultry_meshy", name:"Roast Chicken", price:950,  desc:"Roasted chicken (3D)", model:"models/a_roast_chickenpoultry_meshy.glb" },
+      { id:"avocado",  name:"Avocado",      price:250,  desc:"Fresh avocado (3D)",   model:"models/avocado.glb" },
+      { id:"avalon_lemon", name:"Lemon",    price:200,  desc:"Avalon lemon (3D)",    model:"models/avalon_lemon.glb" },
+      { id:"bread",    name:"Bread",        price:200,  desc:"Bread loaf (3D)",      model:"models/bread.glb" },
+      { id:"burger",   name:"Burger",       price:850,  desc:"Burger (3D)",          model:"models/burger.glb" },
+      { id:"chicken",  name:"Chicken",      price:900,  desc:"Chicken dish (3D)",    model:"models/chicken.glb" },
+      { id:"croissant",name:"Croissant",    price:280,  desc:"Croissant (3D)",       model:"models/croissant.glb" },
+      { id:"fries",    name:"Fries",        price:350,  desc:"Crispy fries (3D)",    model:"models/fries.glb" },
+      { id:"large_orange", name:"Orange",   price:200,  desc:"Large orange (3D)",    model:"models/large_orange.glb" },
+      { id:"lasagna",  name:"Lasagna",      price:1200, desc:"Lasagna (3D)",         model:"models/lasagna.glb" },
+      { id:"mexican_avocado", name:"Mexican Avocado", price:250, desc:"Mexican avocado (3D)", model:"models/mexican_avocado.glb" },
+      { id:"passion_fruit", name:"Passion Fruit", price:180, desc:"Passion fruit (3D)", model:"models/passion_fruit.glb" },
+      { id:"pasta_with_meatballs_and_sausage", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)", model:"models/pasta_with_meatballs_and_sausage.glb" },
+      { id:"persian_lime", name:"Persian Lime", price:150, desc:"Persian lime (3D)", model:"models/persian_lime.glb" },
+      { id:"ripe_banana", name:"Banana",    price:100,  desc:"Ripe banana (3D)",     model:"models/ripe_banana.glb" },
+      { id:"stylized_cookies", name:"Cookies", price:300, desc:"Stylized cookies (3D)", model:"models/stylized_cookies.glb" },
+      { id:"sushi",    name:"Sushi",        price:1500, desc:"Sushi (3D)",           model:"models/sushi.glb" }
+    ];
 
     // ========= ELEMENTS =========
     const mv = document.getElementById('mv');
@@ -197,6 +214,7 @@
     const orderLines = document.getElementById("orderLines");
     const payTotal = document.getElementById("payTotal");
     const payRef = document.getElementById("payRef");
+    const methodOut = document.getElementById("methodOut");
     const bizNo = document.getElementById("bizNo");
     const refOut = document.getElementById("refOut");
     const amtOut = document.getElementById("amtOut");
@@ -330,7 +348,6 @@
       const n = Math.floor(1000 + Math.random()*9000);
       return `MV-${n}`;
     }
-
     function openModal(){
       ov.classList.add("show");
       modal.classList.add("show");
@@ -344,20 +361,19 @@
 
     function renderCheckout(cart, ref){
       const total = cartTotal(cart);
+
+      methodOut.textContent = MPESA_METHOD;
+      bizNo.textContent = MPESA_BIZ_NO;
       payTotal.textContent = formatKsh(total);
       payRef.textContent = ref;
-      bizNo.textContent = MPESA_BIZ_NO;
       refOut.textContent = ref;
       amtOut.textContent = formatKsh(total);
 
-      // Order lines
       let lines = [];
-      orderLines.innerHTML = "";
       for(const [id, qty] of Object.entries(cart)){
         const d = dishes.find(x=>x.id===id);
         if(!d) continue;
-        const lineTotal = d.price * qty;
-        lines.push(`${qty} x ${d.name} = ${formatKsh(lineTotal)}`);
+        lines.push(`${qty} x ${d.name} = ${formatKsh(d.price * qty)}`);
       }
 
       orderLines.innerHTML = `
@@ -379,7 +395,7 @@ ${lines.join("\n")}
 Total: ${total}`;
 
       copyAll.onclick = async () => {
-        try { await navigator.clipboard.writeText(paymentText); alert("Copied."); }
+        try { await navigator.clipboard.writeText(paymentText); alert("Copied payment details."); }
         catch { alert("Copy failed. Please copy manually."); }
       };
 
@@ -404,7 +420,7 @@ Please confirm and process my order.`;
       sendConfirm.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(confirmMsg)}`, "_blank");
     }
 
-    function startCheckoutFromURLOrStorage(){
+    function startCheckoutFromURL(){
       const p = new URLSearchParams(location.search);
       const isCheckout = p.get("checkout") === "1";
       if(!isCheckout) return;
@@ -438,7 +454,7 @@ Please confirm and process my order.`;
     // INIT
     loadCurrentDish();
     setTimeout(detectARSupport, 500);
-    startCheckoutFromURLOrStorage();
+    startCheckoutFromURL();
   </script>
 </body>
 </html>
