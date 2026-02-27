@@ -34,6 +34,36 @@
     .wa{background:#25D366;color:#111}
     button[disabled]{opacity:.45;cursor:not-allowed}
     .hint{opacity:.8;font-size:12px;margin-top:6px}
+
+    /* Checkout modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:80}
+    .overlay.show{display:block}
+    .modal{
+      position:fixed;left:50%;top:50%;
+      transform:translate(-50%,-50%);
+      width:min(520px, 92vw);
+      background:rgba(10,10,16,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      backdrop-filter: blur(12px);
+      z-index:90;
+      display:none;
+    }
+    .modal.show{display:block}
+    .modalHeader{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.12)}
+    .modalTitle{font-weight:900}
+    .modalBody{padding:14px}
+    .kv{display:flex;justify-content:space-between;gap:10px;margin:8px 0}
+    .box{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      padding:10px 10px;
+      background:rgba(0,0,0,.25);
+      margin-top:10px;
+    }
+    .small{opacity:.8;font-size:12px;line-height:1.35}
+    .copyBtn{margin-top:8px}
+    .code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
   </style>
 </head>
 
@@ -69,22 +99,83 @@
       <button class="ghost" id="btnPrev">◀</button>
       <button class="ghost" id="btnNext">▶</button>
       <button class="ghost" id="btnReset">Reset</button>
+      <button class="ghost" id="btnCheckout">Cart Checkout</button>
       <button class="wa" id="btnWA">WhatsApp Order</button>
       <button class="primary" id="btnAR">View in AR</button>
     </div>
   </div>
 
+  <!-- Checkout Modal -->
+  <div class="overlay" id="ov"></div>
+  <div class="modal" id="modal">
+    <div class="modalHeader">
+      <div class="modalTitle">Checkout • M-Pesa</div>
+      <div class="chip" id="closeModal" style="cursor:pointer">✕</div>
+    </div>
+    <div class="modalBody">
+      <div id="orderLines"></div>
+
+      <div class="box">
+        <div class="kv"><div class="small">Total to pay</div><div class="price" id="payTotal">KSh 0</div></div>
+        <div class="kv"><div class="small">Reference</div><div class="code" id="payRef">MV-0000</div></div>
+      </div>
+
+      <div class="box">
+        <div style="font-weight:900;margin-bottom:6px">Pay via M-Pesa (Manual)</div>
+        <div class="small" id="mpesaHow">
+          1) Go to M-Pesa → <b>Lipa na M-Pesa</b><br/>
+          2) Choose <b>Buy Goods and Services</b> (Till) or <b>Paybill</b><br/>
+          3) Enter the number + amount + reference below<br/>
+          4) After paying, tap <b>Send Confirmation</b> (WhatsApp)
+        </div>
+
+        <div class="kv" style="margin-top:10px">
+          <div class="small">Till / Paybill</div>
+          <div class="code" id="bizNo">123456</div>
+        </div>
+        <div class="kv">
+          <div class="small">Account / Reference</div>
+          <div class="code" id="refOut">MV-0000</div>
+        </div>
+        <div class="kv">
+          <div class="small">Amount</div>
+          <div class="code" id="amtOut">KSh 0</div>
+        </div>
+
+        <button class="ghost copyBtn" id="copyAll">Copy payment details</button>
+      </div>
+
+      <div class="ctaRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="wa" id="sendConfirm" style="flex:1">Send Confirmation on WhatsApp</button>
+        <button class="primary" id="placeOrder" style="flex:1">Place Order (WhatsApp)</button>
+      </div>
+
+      <div class="small" style="margin-top:10px;opacity:.75">
+        Note: STK Push requires a backend (Daraja API). This demo uses manual M-Pesa instructions + WhatsApp proof.
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ✅ MATCHES index.html
+    // ========= DISH CATALOG =========
     const dishes = [
-      { id:"burger",  name:"Chicken Burger", price:"KSh 850", desc:"Grilled chicken patty with toppings", model:"models/burger.glb" },
-      { id:"chicken", name:"Chicken Meal",   price:"KSh 950", desc:"Chicken dish preview",               model:"models/chicken.glb" },
-      { id:"fries",   name:"Fries",          price:"KSh 350", desc:"Crispy fries",                      model:"models/fries.fbx" } // convert needed
+      { id:"burger",  name:"Chicken Burger", price:850, desc:"Grilled chicken patty with toppings", model:"models/burger.glb" },
+      { id:"chicken", name:"Chicken Meal",   price:950, desc:"Chicken dish preview",               model:"models/chicken.glb" },
+      { id:"fries",   name:"Fries",          price:350, desc:"Crispy fries",                      model:"models/fries.glb" }
     ];
 
-    // CHANGE THIS to restaurant number (Kenya format, no +)
-    const WHATSAPP_NUMBER = "254745482764";
+    // WhatsApp business number (no +)
+    const WHATSAPP_NUMBER = "254745482764"; // CHANGE THIS
 
+    // M-Pesa manual details (set one method for now)
+    const MPESA_METHOD = "TILL";           // "TILL" or "PAYBILL"
+    const MPESA_BIZ_NO = "123456";         // Till number or Paybill number
+    // If PAYBILL, you can later add account rules. For now we use Reference as account.
+
+    // Cart storage key (must match index.html)
+    const CART_KEY = "mv_cart_v1";
+
+    // ========= ELEMENTS =========
     const mv = document.getElementById('mv');
     const toast = document.getElementById('toast');
     const btnAR = document.getElementById('btnAR');
@@ -92,20 +183,36 @@
     const btnPrev = document.getElementById('btnPrev');
     const btnNext = document.getElementById('btnNext');
     const btnWA = document.getElementById('btnWA');
+    const btnCheckout = document.getElementById('btnCheckout');
     const supportChip = document.getElementById('supportChip');
     const dishName = document.getElementById('dishName');
     const dishPrice = document.getElementById('dishPrice');
     const dishDesc = document.getElementById('dishDesc');
     const viewsText = document.getElementById('viewsText');
 
+    // modal
+    const ov = document.getElementById("ov");
+    const modal = document.getElementById("modal");
+    const closeModal = document.getElementById("closeModal");
+    const orderLines = document.getElementById("orderLines");
+    const payTotal = document.getElementById("payTotal");
+    const payRef = document.getElementById("payRef");
+    const bizNo = document.getElementById("bizNo");
+    const refOut = document.getElementById("refOut");
+    const amtOut = document.getElementById("amtOut");
+    const copyAll = document.getElementById("copyAll");
+    const sendConfirm = document.getElementById("sendConfirm");
+    const placeOrder = document.getElementById("placeOrder");
+
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+    // ========= HELPERS =========
+    const formatKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
     const viewsKey = (id) => `mv_views_${id}`;
     const incViews = (id) => {
-      const k = viewsKey(id);
-      const v = parseInt(localStorage.getItem(k) || "0", 10) + 1;
-      localStorage.setItem(k, String(v));
+      const v = parseInt(localStorage.getItem(viewsKey(id)) || "0", 10) + 1;
+      localStorage.setItem(viewsKey(id), String(v));
       return v;
     };
 
@@ -120,6 +227,7 @@
       return p.get("dish") || dishes[0].id;
     }
 
+    // ========= SWIPE VIEWER =========
     let currentIndex = dishes.findIndex(d => d.id === getDishIdFromURL());
     if (currentIndex < 0) currentIndex = 0;
 
@@ -135,7 +243,7 @@
       updateURL();
 
       dishName.textContent = d.name;
-      dishPrice.textContent = d.price;
+      dishPrice.textContent = formatKsh(d.price);
       dishDesc.textContent = "— " + d.desc;
 
       const v = incViews(d.id);
@@ -144,7 +252,7 @@
       setToast("Loading 3D model…", true);
       mv.src = d.model;
 
-      const msg = `Hello, I want to order: ${d.name} (${d.price}).`;
+      const msg = `Hello, I want to order: ${d.name} (${formatKsh(d.price)}).`;
       btnWA.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
     }
 
@@ -169,7 +277,7 @@
 
     mv.addEventListener('load', () => setToast("", false));
     mv.addEventListener('error', () => {
-      setToast("Model failed to load. Check filename/path (case-sensitive). Also fries must be GLB.", true);
+      setToast("Model failed to load. Check filename/path (case-sensitive).", true);
       btnAR.disabled = true;
       setSupportChip("Model load error");
     });
@@ -180,16 +288,13 @@
         try { webxrAR = await navigator.xr.isSessionSupported('immersive-ar'); } catch(_) {}
       }
       const mvAR = !!mv.canActivateAR;
-
       if (webxrAR) { btnAR.disabled = false; setSupportChip("AR supported (WebXR)"); return; }
       if (isIOS)   { btnAR.disabled = !mvAR; setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)"); return; }
       if (mvAR)    { btnAR.disabled = false; setSupportChip("AR available (Android)"); return; }
-
-      btnAR.disabled = true;
-      setSupportChip("AR not supported");
+      btnAR.disabled = true; setSupportChip("AR not supported");
     }
 
-    // SWIPE
+    // Swipe on model-viewer
     let startX=0, startY=0, isDown=false;
     const SWIPE_MIN=50, SWIPE_MAX_Y=80;
 
@@ -207,9 +312,133 @@
       else if(dx<-SWIPE_MIN) nextDish();
     }, {passive:true});
 
+    // ========= CART CHECKOUT =========
+    function loadCart(){
+      try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); }
+      catch { return {}; }
+    }
+    function cartCount(cart){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+    function cartTotal(cart){
+      let total=0;
+      for(const [id, qty] of Object.entries(cart)){
+        const d = dishes.find(x=>x.id===id);
+        if(d) total += d.price * qty;
+      }
+      return total;
+    }
+    function makeRef(){
+      const n = Math.floor(1000 + Math.random()*9000);
+      return `MV-${n}`;
+    }
+
+    function openModal(){
+      ov.classList.add("show");
+      modal.classList.add("show");
+    }
+    function closeModalFn(){
+      ov.classList.remove("show");
+      modal.classList.remove("show");
+    }
+    ov.onclick = closeModalFn;
+    closeModal.onclick = closeModalFn;
+
+    function renderCheckout(cart, ref){
+      const total = cartTotal(cart);
+      payTotal.textContent = formatKsh(total);
+      payRef.textContent = ref;
+      bizNo.textContent = MPESA_BIZ_NO;
+      refOut.textContent = ref;
+      amtOut.textContent = formatKsh(total);
+
+      // Order lines
+      let lines = [];
+      orderLines.innerHTML = "";
+      for(const [id, qty] of Object.entries(cart)){
+        const d = dishes.find(x=>x.id===id);
+        if(!d) continue;
+        const lineTotal = d.price * qty;
+        lines.push(`${qty} x ${d.name} = ${formatKsh(lineTotal)}`);
+      }
+
+      orderLines.innerHTML = `
+        <div class="box">
+          <div style="font-weight:900;margin-bottom:6px">Order Summary</div>
+          <div class="small">${lines.join("<br/>")}</div>
+        </div>
+      `;
+
+      const paymentText =
+`MenuVista Order Payment
+Method: ${MPESA_METHOD}
+Business No: ${MPESA_BIZ_NO}
+Reference: ${ref}
+Amount: ${total}
+
+Order:
+${lines.join("\n")}
+Total: ${total}`;
+
+      copyAll.onclick = async () => {
+        try { await navigator.clipboard.writeText(paymentText); alert("Copied."); }
+        catch { alert("Copy failed. Please copy manually."); }
+      };
+
+      const orderMsg =
+`Hello, I want to place an order:
+
+${lines.join("\n")}
+TOTAL: ${formatKsh(total)}
+
+Payment method: M-Pesa (${MPESA_METHOD})
+Reference: ${ref}`;
+
+      const confirmMsg =
+`Hello, I have paid via M-Pesa.
+
+Reference: ${ref}
+Amount: ${formatKsh(total)}
+
+Please confirm and process my order.`;
+
+      placeOrder.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMsg)}`, "_blank");
+      sendConfirm.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(confirmMsg)}`, "_blank");
+    }
+
+    function startCheckoutFromURLOrStorage(){
+      const p = new URLSearchParams(location.search);
+      const isCheckout = p.get("checkout") === "1";
+      if(!isCheckout) return;
+
+      let cart = {};
+      const encoded = p.get("cart");
+      if(encoded){
+        try { cart = JSON.parse(atob(decodeURIComponent(encoded))); } catch {}
+      } else {
+        cart = loadCart();
+      }
+
+      if(cartCount(cart) === 0){
+        alert("Cart is empty.");
+        return;
+      }
+
+      const ref = makeRef();
+      renderCheckout(cart, ref);
+      openModal();
+    }
+
+    btnCheckout.onclick = () => {
+      const cart = loadCart();
+      if(cartCount(cart) === 0){ alert("Cart is empty."); return; }
+      const ref = makeRef();
+      renderCheckout(cart, ref);
+      openModal();
+    };
+
     // INIT
     loadCurrentDish();
     setTimeout(detectARSupport, 500);
+    startCheckoutFromURLOrStorage();
   </script>
 </body>
 </html>
