@@ -3,442 +3,356 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • AR Viewer</title>
-
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
-
+  <title>MenuVista • Restaurant Menu</title>
   <style>
     :root { color-scheme: dark; }
-    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; color:#fff; }
-    model-viewer{
-      width:100vw; height:100vh;
-      background:
-        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
-        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
-        #0b0b10;
+    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .brand{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .logo{font-weight:900;font-size:18px}
+    .sub{opacity:.8;font-size:13px;margin-top:4px}
+    .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px}
+    .search{width:100%;margin:14px 0 6px}
+    input{
+      width:100%;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);color:#fff;outline:none;
+      font-weight:700;
     }
-    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:10px;justify-content:space-between;pointer-events:none;z-index:5}
-    .chip{pointer-events:auto;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(10px);font-weight:900;font-size:13px}
-    .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(12px);font-size:13px;max-width:88vw;text-align:center;display:none;z-index:6}
-    .toast.show{display:block}
-    .panel{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(12px);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:flex-end;justify-content:space-between;z-index:5}
-    .title{font-size:18px;font-weight:900;margin:0 0 6px}
-    .meta{margin:0;opacity:.9;font-size:13px;line-height:1.35}
+    h2{margin:18px 0 10px;font-size:16px}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media (min-width: 860px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
+    .card{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.35);
+      border-radius:18px;overflow:hidden;
+      transition:transform .12s ease;
+    }
+    .card:hover{transform:translateY(-2px)}
+    .thumb{height:140px;background:rgba(255,255,255,.03);background-size:cover;background-position:center}
+    .body{padding:12px}
+    .name{font-weight:900;margin:0 0 4px}
+    .desc{margin:0;opacity:.85;font-size:12.5px;line-height:1.3}
+    .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
     .price{font-weight:900;color:#FF7A2F}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    button{border:0;border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
-    .primary{background:#FF7A2F;color:#111}
-    .ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14)}
-    .wa{background:#25D366;color:#111}
-    button[disabled]{opacity:.45;cursor:not-allowed}
-    .hint{opacity:.8;font-size:12px;margin-top:6px}
+    .btn{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px;cursor:pointer}
+    .views{opacity:.7;font-size:12px}
 
-    /* Checkout modal */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:80}
+    /* Cart button (top right) */
+    .cartBtn{
+      display:flex;gap:8px;align-items:center;cursor:pointer;
+      padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.08);font-weight:900;font-size:12px;
+      user-select:none;
+    }
+    .badge{
+      min-width:22px;height:22px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      background:#FF7A2F;color:#111;font-weight:900;font-size:12px;
+      padding:0 6px;
+    }
+
+    /* Cart drawer */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50}
     .overlay.show{display:block}
-    .modal{
-      position:fixed;left:50%;top:50%;
-      transform:translate(-50%,-50%);
-      width:min(520px, 92vw);
-      background:rgba(10,10,16,.95);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;
+    .drawer{
+      position:fixed;top:0;right:0;height:100%;width:min(420px, 92vw);
+      background:rgba(10,10,16,.92);
+      border-left:1px solid rgba(255,255,255,.12);
       backdrop-filter: blur(12px);
-      z-index:90;
-      display:none;
+      transform: translateX(100%);
+      transition: transform .18s ease;
+      z-index:60;
+      display:flex;flex-direction:column;
     }
-    .modal.show{display:block}
-    .modalHeader{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.12)}
-    .modalTitle{font-weight:900}
-    .modalBody{padding:14px}
-    .kv{display:flex;justify-content:space-between;gap:10px;margin:8px 0}
-    .box{
+    .drawer.show{transform: translateX(0)}
+    .drawerHeader{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .drawerTitle{font-weight:900}
+    .close{cursor:pointer;opacity:.85}
+    .cartList{padding:0 14px 14px;overflow:auto;flex:1}
+    .item{
       border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;
+      border-radius:16px;
       padding:10px 10px;
+      display:flex;justify-content:space-between;gap:10px;
+      margin-bottom:10px;
       background:rgba(0,0,0,.25);
-      margin-top:10px;
     }
-    .small{opacity:.8;font-size:12px;line-height:1.35}
-    .copyBtn{margin-top:8px}
-    .code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    .itemName{font-weight:900;margin:0 0 4px}
+    .itemMeta{opacity:.85;font-size:12px;margin:0}
+    .qtyRow{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .qtyBtn{
+      width:34px;height:34px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.08);color:#fff;
+      font-weight:900;cursor:pointer;
+    }
+    .qty{min-width:26px;text-align:center;font-weight:900}
+    .drawerFooter{
+      border-top:1px solid rgba(255,255,255,.12);
+      padding:12px 14px 14px;
+      background:rgba(0,0,0,.25);
+    }
+    .totalRow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .totalLabel{opacity:.85}
+    .totalAmt{font-weight:900;color:#FF7A2F}
+    .ctaRow{display:flex;gap:10px;flex-wrap:wrap}
+    .primary{
+      background:#FF7A2F;color:#111;border:0;border-radius:14px;
+      padding:10px 12px;font-weight:900;cursor:pointer;flex:1
+    }
+    .ghost{
+      background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;
+    }
+    .muted{opacity:.75;font-size:12px;margin-top:10px;line-height:1.35}
   </style>
 </head>
-
 <body>
-  <div class="topbar">
-    <div class="chip" onclick="location.href='index.html'" style="cursor:pointer">← Menu</div>
-    <div id="supportChip" class="chip">Checking AR support…</div>
+  <div class="wrap">
+    <div class="brand">
+      <div>
+        <div class="logo">MenuVista • Demo Restaurant</div>
+        <div class="sub">Tap a dish to preview in AR. Add items to cart and checkout via WhatsApp + M-Pesa.</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="pill">QR → Menu</div>
+        <div class="cartBtn" id="openCartBtn">
+          Cart <span class="badge" id="cartCount">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="search">
+      <input id="q" placeholder="Search dishes (e.g., burger, fries)..." />
+    </div>
+
+    <div id="menu"></div>
   </div>
 
-  <model-viewer id="mv"
-    src=""
-    camera-controls
-    auto-rotate
-    rotation-per-second="20deg"
-    shadow-intensity="1"
-    environment-image="neutral"
-    exposure="1.0"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    ar-placement="floor">
-  </model-viewer>
-
-  <div id="toast" class="toast show">Loading 3D model…</div>
-
-  <div class="panel">
-    <div style="max-width:58ch">
-      <p class="title" id="dishName">Loading…</p>
-      <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
-      <p class="meta" id="statusText">Swipe left/right to change dishes. Tap “View in AR” to place on table.</p>
-      <div class="hint" id="viewsText"></div>
+  <!-- Cart Drawer -->
+  <div class="overlay" id="overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawerHeader">
+      <div class="drawerTitle">Your Cart</div>
+      <div class="close" id="closeCartBtn">✕</div>
     </div>
-    <div class="actions">
-      <button class="ghost" id="btnPrev">◀</button>
-      <button class="ghost" id="btnNext">▶</button>
-      <button class="ghost" id="btnReset">Reset</button>
-      <button class="ghost" id="btnCheckout">Cart Checkout</button>
-      <button class="wa" id="btnWA">WhatsApp Order</button>
-      <button class="primary" id="btnAR">View in AR</button>
-    </div>
-  </div>
-
-  <!-- Checkout Modal -->
-  <div class="overlay" id="ov"></div>
-  <div class="modal" id="modal">
-    <div class="modalHeader">
-      <div class="modalTitle">Checkout • M-Pesa</div>
-      <div class="chip" id="closeModal" style="cursor:pointer">✕</div>
-    </div>
-    <div class="modalBody">
-      <div id="orderLines"></div>
-
-      <div class="box">
-        <div class="kv"><div class="small">Total to pay</div><div class="price" id="payTotal">KSh 0</div></div>
-        <div class="kv"><div class="small">Reference</div><div class="code" id="payRef">MV-0000</div></div>
+    <div class="cartList" id="cartList"></div>
+    <div class="drawerFooter">
+      <div class="totalRow">
+        <div class="totalLabel">Total</div>
+        <div class="totalAmt" id="cartTotal">KSh 0</div>
       </div>
-
-      <div class="box">
-        <div style="font-weight:900;margin-bottom:6px">Pay via M-Pesa (Manual)</div>
-        <div class="small" id="mpesaHow">
-          1) Go to M-Pesa → <b>Lipa na M-Pesa</b><br/>
-          2) Choose <b>Buy Goods and Services</b> (Till) or <b>Paybill</b><br/>
-          3) Enter the number + amount + reference below<br/>
-          4) After paying, tap <b>Send Confirmation</b> (WhatsApp)
-        </div>
-
-        <div class="kv" style="margin-top:10px">
-          <div class="small">Till / Paybill</div>
-          <div class="code" id="bizNo">123456</div>
-        </div>
-        <div class="kv">
-          <div class="small">Account / Reference</div>
-          <div class="code" id="refOut">MV-0000</div>
-        </div>
-        <div class="kv">
-          <div class="small">Amount</div>
-          <div class="code" id="amtOut">KSh 0</div>
-        </div>
-
-        <button class="ghost copyBtn" id="copyAll">Copy payment details</button>
+      <div class="ctaRow">
+        <button class="ghost" id="clearCartBtn">Clear</button>
+        <button class="primary" id="checkoutBtn">Checkout</button>
       </div>
-
-      <div class="ctaRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <button class="wa" id="sendConfirm" style="flex:1">Send Confirmation on WhatsApp</button>
-        <button class="primary" id="placeOrder" style="flex:1">Place Order (WhatsApp)</button>
-      </div>
-
-      <div class="small" style="margin-top:10px;opacity:.75">
-        Note: STK Push requires a backend (Daraja API). This demo uses manual M-Pesa instructions + WhatsApp proof.
+      <div class="muted">
+        Checkout opens the AR viewer payment page (M-Pesa instructions + WhatsApp order summary).
       </div>
     </div>
   </div>
 
   <script>
-    // ========= DISH CATALOG =========
-    const dishes = [
-      { id:"burger",  name:"Chicken Burger", price:850, desc:"Grilled chicken patty with toppings", model:"models/burger.glb" },
-      { id:"chicken", name:"Chicken Meal",   price:950, desc:"Chicken dish preview",               model:"models/chicken.glb" },
-      { id:"fries",   name:"Fries",          price:350, desc:"Crispy fries",                      model:"models/fries.glb" }
-    ];
-
-    // WhatsApp business number (no +)
-    const WHATSAPP_NUMBER = "254745482764"; // CHANGE THIS
-
-    // M-Pesa manual details (set one method for now)
-    const MPESA_METHOD = "TILL";           // "TILL" or "PAYBILL"
-    const MPESA_BIZ_NO = "123456";         // Till number or Paybill number
-    // If PAYBILL, you can later add account rules. For now we use Reference as account.
-
-    // Cart storage key (must match index.html)
+    // =========================
+    // CONFIG
+    // =========================
     const CART_KEY = "mv_cart_v1";
 
-    // ========= ELEMENTS =========
-    const mv = document.getElementById('mv');
-    const toast = document.getElementById('toast');
-    const btnAR = document.getElementById('btnAR');
-    const btnReset = document.getElementById('btnReset');
-    const btnPrev = document.getElementById('btnPrev');
-    const btnNext = document.getElementById('btnNext');
-    const btnWA = document.getElementById('btnWA');
-    const btnCheckout = document.getElementById('btnCheckout');
-    const supportChip = document.getElementById('supportChip');
-    const dishName = document.getElementById('dishName');
-    const dishPrice = document.getElementById('dishPrice');
-    const dishDesc = document.getElementById('dishDesc');
-    const viewsText = document.getElementById('viewsText');
+    // ✅ YOUR FILE PATHS
+    const dishes = [
+      { id:"burger",  cat:"Mains", name:"Chicken Burger", price:850,  desc:"Grilled chicken patty with toppings", model:"models/burger.glb",  thumb:"Images/burger.png" },
+      { id:"chicken", cat:"Mains", name:"Chicken Meal",   price:950,  desc:"Chicken dish preview",               model:"models/chicken.glb", thumb:"Images/chicken.png" },
+      // NOTE: fries must be GLB for viewer (convert fries.fbx -> fries.glb)
+      { id:"fries",   cat:"Sides", name:"Fries",          price:350,  desc:"Crispy fries",                       model:"models/fries.glb",   thumb:"Images/fries.png" }
+    ];
 
-    // modal
-    const ov = document.getElementById("ov");
-    const modal = document.getElementById("modal");
-    const closeModal = document.getElementById("closeModal");
-    const orderLines = document.getElementById("orderLines");
-    const payTotal = document.getElementById("payTotal");
-    const payRef = document.getElementById("payRef");
-    const bizNo = document.getElementById("bizNo");
-    const refOut = document.getElementById("refOut");
-    const amtOut = document.getElementById("amtOut");
-    const copyAll = document.getElementById("copyAll");
-    const sendConfirm = document.getElementById("sendConfirm");
-    const placeOrder = document.getElementById("placeOrder");
+    const cats = [...new Set(dishes.map(d => d.cat))];
+    const menuEl = document.getElementById("menu");
+    const q = document.getElementById("q");
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-    // ========= HELPERS =========
-    const formatKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
-    const viewsKey = (id) => `mv_views_${id}`;
-    const incViews = (id) => {
-      const v = parseInt(localStorage.getItem(viewsKey(id)) || "0", 10) + 1;
-      localStorage.setItem(viewsKey(id), String(v));
-      return v;
-    };
-
-    function setToast(msg, show=true){
-      toast.textContent = msg;
-      toast.classList.toggle('show', !!show);
-    }
-    function setSupportChip(msg){ supportChip.textContent = msg; }
-
-    function getDishIdFromURL(){
-      const p = new URLSearchParams(location.search);
-      return p.get("dish") || dishes[0].id;
-    }
-
-    // ========= SWIPE VIEWER =========
-    let currentIndex = dishes.findIndex(d => d.id === getDishIdFromURL());
-    if (currentIndex < 0) currentIndex = 0;
-
-    function updateURL(){
-      const id = dishes[currentIndex].id;
-      const u = new URL(location.href);
-      u.searchParams.set("dish", id);
-      history.replaceState({}, "", u.toString());
-    }
-
-    function loadCurrentDish(){
-      const d = dishes[currentIndex];
-      updateURL();
-
-      dishName.textContent = d.name;
-      dishPrice.textContent = formatKsh(d.price);
-      dishDesc.textContent = "— " + d.desc;
-
-      const v = incViews(d.id);
-      viewsText.textContent = `${v} view${v===1?"":"s"} (this browser)`;
-
-      setToast("Loading 3D model…", true);
-      mv.src = d.model;
-
-      const msg = `Hello, I want to order: ${d.name} (${formatKsh(d.price)}).`;
-      btnWA.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
-    }
-
-    function prevDish(){ currentIndex = (currentIndex - 1 + dishes.length) % dishes.length; loadCurrentDish(); }
-    function nextDish(){ currentIndex = (currentIndex + 1) % dishes.length; loadCurrentDish(); }
-
-    btnPrev.addEventListener("click", prevDish);
-    btnNext.addEventListener("click", nextDish);
-
-    btnReset.addEventListener('click', () => {
-      mv.cameraOrbit = "0deg 75deg 2.5m";
-      mv.fieldOfView = "30deg";
-    });
-
-    btnAR.addEventListener('click', async () => {
-      try { await mv.activateAR(); }
-      catch(e){
-        setToast("AR could not start on this device. Using 3D preview instead.", true);
-        console.error(e);
-      }
-    });
-
-    mv.addEventListener('load', () => setToast("", false));
-    mv.addEventListener('error', () => {
-      setToast("Model failed to load. Check filename/path (case-sensitive).", true);
-      btnAR.disabled = true;
-      setSupportChip("Model load error");
-    });
-
-    async function detectARSupport(){
-      let webxrAR = false;
-      if (navigator.xr && navigator.xr.isSessionSupported) {
-        try { webxrAR = await navigator.xr.isSessionSupported('immersive-ar'); } catch(_) {}
-      }
-      const mvAR = !!mv.canActivateAR;
-      if (webxrAR) { btnAR.disabled = false; setSupportChip("AR supported (WebXR)"); return; }
-      if (isIOS)   { btnAR.disabled = !mvAR; setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)"); return; }
-      if (mvAR)    { btnAR.disabled = false; setSupportChip("AR available (Android)"); return; }
-      btnAR.disabled = true; setSupportChip("AR not supported");
-    }
-
-    // Swipe on model-viewer
-    let startX=0, startY=0, isDown=false;
-    const SWIPE_MIN=50, SWIPE_MAX_Y=80;
-
-    mv.addEventListener("touchstart", (e)=>{
-      if(!e.touches || e.touches.length!==1) return;
-      isDown=true; startX=e.touches[0].clientX; startY=e.touches[0].clientY;
-    }, {passive:true});
-
-    mv.addEventListener("touchend", (e)=>{
-      if(!isDown) return; isDown=false;
-      const t=e.changedTouches && e.changedTouches[0]; if(!t) return;
-      const dx=t.clientX-startX, dy=t.clientY-startY;
-      if(Math.abs(dy)>SWIPE_MAX_Y) return;
-      if(dx>SWIPE_MIN) prevDish();
-      else if(dx<-SWIPE_MIN) nextDish();
-    }, {passive:true});
-
-    // ========= CART CHECKOUT =========
+    // =========================
+    // CART STORAGE
+    // =========================
     function loadCart(){
       try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); }
       catch { return {}; }
     }
-    function cartCount(cart){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+    function saveCart(cart){
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      updateCartUI();
+    }
+    function addToCart(id){
+      const cart = loadCart();
+      cart[id] = (cart[id] || 0) + 1;
+      saveCart(cart);
+      openCart(); // nice UX
+    }
+    function setQty(id, qty){
+      const cart = loadCart();
+      if(qty <= 0) delete cart[id];
+      else cart[id] = qty;
+      saveCart(cart);
+    }
+    function clearCart(){
+      localStorage.removeItem(CART_KEY);
+      updateCartUI();
+    }
+
+    function cartCount(cart){
+      return Object.values(cart).reduce((a,b)=>a+b,0);
+    }
     function cartTotal(cart){
-      let total=0;
+      let total = 0;
       for(const [id, qty] of Object.entries(cart)){
-        const d = dishes.find(x=>x.id===id);
+        const d = dishes.find(x => x.id === id);
         if(d) total += d.price * qty;
       }
       return total;
     }
-    function makeRef(){
-      const n = Math.floor(1000 + Math.random()*9000);
-      return `MV-${n}`;
+    function formatKsh(n){
+      return "KSh " + n.toLocaleString("en-KE");
     }
 
-    function openModal(){
-      ov.classList.add("show");
-      modal.classList.add("show");
-    }
-    function closeModalFn(){
-      ov.classList.remove("show");
-      modal.classList.remove("show");
-    }
-    ov.onclick = closeModalFn;
-    closeModal.onclick = closeModalFn;
-
-    function renderCheckout(cart, ref){
-      const total = cartTotal(cart);
-      payTotal.textContent = formatKsh(total);
-      payRef.textContent = ref;
-      bizNo.textContent = MPESA_BIZ_NO;
-      refOut.textContent = ref;
-      amtOut.textContent = formatKsh(total);
-
-      // Order lines
-      let lines = [];
-      orderLines.innerHTML = "";
-      for(const [id, qty] of Object.entries(cart)){
-        const d = dishes.find(x=>x.id===id);
-        if(!d) continue;
-        const lineTotal = d.price * qty;
-        lines.push(`${qty} x ${d.name} = ${formatKsh(lineTotal)}`);
-      }
-
-      orderLines.innerHTML = `
-        <div class="box">
-          <div style="font-weight:900;margin-bottom:6px">Order Summary</div>
-          <div class="small">${lines.join("<br/>")}</div>
-        </div>
-      `;
-
-      const paymentText =
-`MenuVista Order Payment
-Method: ${MPESA_METHOD}
-Business No: ${MPESA_BIZ_NO}
-Reference: ${ref}
-Amount: ${total}
-
-Order:
-${lines.join("\n")}
-Total: ${total}`;
-
-      copyAll.onclick = async () => {
-        try { await navigator.clipboard.writeText(paymentText); alert("Copied."); }
-        catch { alert("Copy failed. Please copy manually."); }
-      };
-
-      const orderMsg =
-`Hello, I want to place an order:
-
-${lines.join("\n")}
-TOTAL: ${formatKsh(total)}
-
-Payment method: M-Pesa (${MPESA_METHOD})
-Reference: ${ref}`;
-
-      const confirmMsg =
-`Hello, I have paid via M-Pesa.
-
-Reference: ${ref}
-Amount: ${formatKsh(total)}
-
-Please confirm and process my order.`;
-
-      placeOrder.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMsg)}`, "_blank");
-      sendConfirm.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(confirmMsg)}`, "_blank");
+    // =========================
+    // MENU RENDER
+    // =========================
+    function openDish(id){
+      location.href = `ar.html?dish=${encodeURIComponent(id)}`;
     }
 
-    function startCheckoutFromURLOrStorage(){
-      const p = new URLSearchParams(location.search);
-      const isCheckout = p.get("checkout") === "1";
-      if(!isCheckout) return;
+    function renderMenu(){
+      const term = q.value.trim().toLowerCase();
+      menuEl.innerHTML = "";
 
-      let cart = {};
-      const encoded = p.get("cart");
-      if(encoded){
-        try { cart = JSON.parse(atob(decodeURIComponent(encoded))); } catch {}
-      } else {
-        cart = loadCart();
-      }
+      cats.forEach(cat => {
+        const section = document.createElement("div");
+        const title = document.createElement("h2");
+        title.textContent = cat;
+        section.appendChild(title);
 
+        const grid = document.createElement("div");
+        grid.className = "grid";
+
+        dishes
+          .filter(d => d.cat === cat)
+          .filter(d => !term || (d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term)))
+          .forEach(d => {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            card.innerHTML = `
+              <div class="thumb" style="background-image:url('${d.thumb}')"></div>
+              <div class="body">
+                <p class="name">${d.name}</p>
+                <p class="desc">${d.desc}</p>
+                <div class="row">
+                  <div class="price">${formatKsh(d.price)}</div>
+                  <div style="display:flex;gap:8px">
+                    <div class="btn" data-action="ar">AR Preview</div>
+                    <div class="btn" data-action="add">Add</div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            card.querySelector('[data-action="ar"]').onclick = (e) => { e.stopPropagation(); openDish(d.id); };
+            card.querySelector('[data-action="add"]').onclick = (e) => { e.stopPropagation(); addToCart(d.id); };
+
+            grid.appendChild(card);
+          });
+
+        section.appendChild(grid);
+        menuEl.appendChild(section);
+      });
+    }
+
+    q.addEventListener("input", renderMenu);
+
+    // =========================
+    // CART DRAWER UI
+    // =========================
+    const overlay = document.getElementById("overlay");
+    const drawer = document.getElementById("drawer");
+    const openCartBtn = document.getElementById("openCartBtn");
+    const closeCartBtn = document.getElementById("closeCartBtn");
+    const cartListEl = document.getElementById("cartList");
+    const cartCountEl = document.getElementById("cartCount");
+    const cartTotalEl = document.getElementById("cartTotal");
+    const clearCartBtn = document.getElementById("clearCartBtn");
+    const checkoutBtn = document.getElementById("checkoutBtn");
+
+    function openCart(){
+      overlay.classList.add("show");
+      drawer.classList.add("show");
+      updateCartUI();
+    }
+    function closeCart(){
+      overlay.classList.remove("show");
+      drawer.classList.remove("show");
+    }
+
+    overlay.onclick = closeCart;
+    openCartBtn.onclick = openCart;
+    closeCartBtn.onclick = closeCart;
+
+    clearCartBtn.onclick = () => {
+      clearCart();
+    };
+
+    checkoutBtn.onclick = () => {
+      const cart = loadCart();
       if(cartCount(cart) === 0){
         alert("Cart is empty.");
         return;
       }
-
-      const ref = makeRef();
-      renderCheckout(cart, ref);
-      openModal();
-    }
-
-    btnCheckout.onclick = () => {
-      const cart = loadCart();
-      if(cartCount(cart) === 0){ alert("Cart is empty."); return; }
-      const ref = makeRef();
-      renderCheckout(cart, ref);
-      openModal();
+      // Send cart into checkout page via URL (small + demo-friendly)
+      const payload = encodeURIComponent(btoa(JSON.stringify(cart)));
+      location.href = `ar.html?checkout=1&cart=${payload}`;
     };
 
+    function updateCartUI(){
+      const cart = loadCart();
+      cartCountEl.textContent = cartCount(cart);
+      cartTotalEl.textContent = formatKsh(cartTotal(cart));
+
+      cartListEl.innerHTML = "";
+      const entries = Object.entries(cart);
+
+      if(entries.length === 0){
+        cartListEl.innerHTML = `<div style="opacity:.8;padding:10px 2px">Your cart is empty.</div>`;
+        return;
+      }
+
+      entries.forEach(([id, qty]) => {
+        const d = dishes.find(x => x.id === id);
+        if(!d) return;
+
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `
+          <div>
+            <p class="itemName">${d.name}</p>
+            <p class="itemMeta">${formatKsh(d.price)} each</p>
+          </div>
+          <div style="text-align:right">
+            <div class="itemMeta" style="margin-bottom:8px">${formatKsh(d.price * qty)}</div>
+            <div class="qtyRow">
+              <button class="qtyBtn" data-dec>-</button>
+              <div class="qty">${qty}</div>
+              <button class="qtyBtn" data-inc>+</button>
+            </div>
+          </div>
+        `;
+        item.querySelector("[data-dec]").onclick = () => setQty(id, qty-1);
+        item.querySelector("[data-inc]").onclick = () => setQty(id, qty+1);
+        cartListEl.appendChild(item);
+      });
+    }
+
     // INIT
-    loadCurrentDish();
-    setTimeout(detectARSupport, 500);
-    startCheckoutFromURLOrStorage();
+    renderMenu();
+    updateCartUI();
   </script>
 </body>
 </html>
