@@ -159,26 +159,36 @@
     // =========================
     const CART_KEY = "mv_cart_v1";
 
-    // ✅ ONLY GLB + IMAGE (your folders: models/ and Images/)
+    // ✅ UPDATED to match YOUR real files (spaces + caps)
     // NOTE: Filenames must match exactly (case-sensitive on GitHub Pages).
     const dishes = [
-      { id:"a_roast_chickenpoultry_meshy", cat:"Mains",  name:"Roast Chicken",      price:950,  desc:"Roasted chicken (3D)",           model:"models/a_roast_chickenpoultry_meshy.glb", thumb:"Images/A roasted chicken.png" },
-      { id:"avocado",                      cat:"Fruits", name:"Avocado",            price:250,  desc:"Fresh avocado (3D)",              model:"models/avocado.glb",                      thumb:"Images/avocado.png" },
-      { id:"avalon_lemon",                 cat:"Fruits", name:"Lemon",              price:200,  desc:"Avalon lemon (3D)",               model:"models/avalon_lemon.glb",                 thumb:"Images/avalon lemon.png" },
-      { id:"bread",                        cat:"Bakery", name:"Bread",              price:200,  desc:"Bread loaf (3D)",                 model:"models/bread.glb",                        thumb:"Images/bread.png" },
-      { id:"burger",                       cat:"Mains",  name:"Burger",             price:850,  desc:"Burger (3D)",                     model:"models/burger.glb",                       thumb:"Images/burger.png" },
-      { id:"chicken",                      cat:"Mains",  name:"Chicken",            price:900,  desc:"Chicken dish (3D)",               model:"models/chicken.glb",                      thumb:"Images/chicken.png" },
-      { id:"croissant",                    cat:"Bakery", name:"Croissant",          price:280,  desc:"Croissant (3D)",                  model:"models/croissant.glb",                    thumb:"Images/croissant.png" },
-      { id:"fries",                        cat:"Sides",  name:"Fries",              price:350,  desc:"Crispy fries (3D)",               model:"models/fries.glb",                        thumb:"Images/fries.png" },
-      { id:"large_orange",                 cat:"Fruits", name:"Orange",             price:200,  desc:"Large orange (3D)",               model:"models/large_orange.glb",                 thumb:"Images/Large_orange.png" },
-      { id:"lasagna",                      cat:"Mains",  name:"Lasagna",            price:1200, desc:"Lasagna (3D)",                    model:"models/lasagna.glb",                      thumb:"Images/lasagna.png" },
-      { id:"mexican_avocado",              cat:"Fruits", name:"Mexican Avocado",    price:250,  desc:"Mexican avocado (3D)",            model:"models/mexican_avocado.glb",              thumb:"Images/mexican Avocado.png" },
-      { id:"passion_fruit",                cat:"Fruits", name:"Passion Fruit",      price:180,  desc:"Passion fruit (3D)",              model:"models/passion_fruit.glb",                thumb:"Images/passion fruit.png" },
-      { id:"pasta_with_meatballs_and_sausage", cat:"Mains", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)",     model:"models/pasta_with_meatballs_and_sausage.glb", thumb:"Images/pasta_with_meatballs_and_sausage.png" },
-      { id:"persian_lime",                 cat:"Fruits", name:"Persian Lime",       price:150,  desc:"Persian lime (3D)",               model:"models/persian_lime.glb",                 thumb:"Images/persian lime.png" },
-      { id:"ripe_banana",                  cat:"Fruits", name:"Banana",             price:100,  desc:"Ripe banana (3D)",                model:"models/ripe_banana.glb",                  thumb:"Images/Ripe banana.png" },
-      { id:"stylized_cookies",             cat:"Dessert",name:"Cookies",            price:300,  desc:"Stylized cookies (3D)",           model:"models/stylized_cookies.glb",             thumb:"Images/stylized cookies.png" },
-      { id:"sushi",                        cat:"Mains",  name:"Sushi",              price:1500, desc:"Sushi (3D)",                      model:"models/sushi.glb",                        thumb:"Images/sushi.png" }
+      { id:"Burger-drink",   cat:"Mains",   name:"Burger + Drink", price:900,  desc:"Combo meal (3D)",               model:"models/Burger-drink.glb",                 thumb:"Images/burger.png" },
+      { id:"CheeseBurger",   cat:"Mains",   name:"Cheese Burger",  price:850,  desc:"Cheesy burger (3D)",           model:"models/CheeseBurger.glb",                 thumb:"Images/CheeseBurger.png" },
+      { id:"chicken",        cat:"Mains",   name:"Chicken",        price:900,  desc:"Chicken dish (3D)",            model:"models/chicken.glb",                      thumb:"Images/chicken.png" },
+      { id:"fries",          cat:"Sides",   name:"Fries",          price:350,  desc:"Crispy fries (3D)",            model:"models/fries.glb",                        thumb:"Images/fries.png" },
+      { id:"sushi",          cat:"Mains",   name:"Sushi",          price:1500, desc:"Sushi (3D)",                   model:"models/sushi.glb",                        thumb:"Images/sushi.png" },
+      { id:"lasagna",        cat:"Mains",   name:"Lasagna",        price:1200, desc:"Lasagna (3D)",                 model:"models/lasagna.glb",                      thumb:"Images/lasagna.png" },
+
+      { id:"avalon lemon",   cat:"Fruits",  name:"Lemon",          price:200,  desc:"Avalon lemon (3D)",            model:"models/avalon lemon.glb",                 thumb:"Images/avalon lemon.png" },
+      { id:"avocado",        cat:"Fruits",  name:"Avocado",        price:250,  desc:"Fresh avocado (3D)",           model:"models/avocado.glb",                      thumb:"Images/avocado.png" },
+      { id:"mexican avocado",cat:"Fruits",  name:"Mexican Avocado",price:250,  desc:"Mexican avocado (3D)",         model:"models/mexican avocado.glb",               thumb:"Images/mexican Avocado.png" },
+      { id:"passion fruit",  cat:"Fruits",  name:"Passion Fruit",  price:180,  desc:"Passion fruit (3D)",           model:"models/passion fruit.glb",                thumb:"Images/passion fruit.png" },
+      { id:"persian lime",   cat:"Fruits",  name:"Persian Lime",   price:150,  desc:"Persian lime (3D)",            model:"models/persian lime.glb",                 thumb:"Images/persian lime.png" },
+      { id:"large orange",   cat:"Fruits",  name:"Orange",         price:200,  desc:"Large orange (3D)",            model:"models/large orange.glb",                 thumb:"Images/Large_orange.png" },
+
+      { id:"bread",          cat:"Bakery",  name:"Bread",          price:200,  desc:"Bread loaf (3D)",              model:"models/bread.glb",                        thumb:"Images/bread.png" },
+      { id:"croissant",      cat:"Bakery",  name:"Croissant",      price:280,  desc:"Croissant (3D)",               model:"models/croissant.glb",                    thumb:"Images/croissant.png" },
+
+      { id:"huel bottle",    cat:"Drinks",  name:"Huel Bottle",    price:450,  desc:"Bottle drink (3D)",            model:"models/huel bottle.glb",                  thumb:"Images/huel bottle.png" },
+      { id:"litchi juice",   cat:"Drinks",  name:"Litchi Juice",   price:350,  desc:"Litchi juice (3D)",            model:"models/litchi juice.glb",                 thumb:"Images/litchi Juice.png" },
+      { id:"Roxie Rootbeer", cat:"Drinks",  name:"Root Beer",      price:300,  desc:"Roxie Rootbeer (3D)",          model:"models/Roxie Rootbeer.glb",               thumb:"Images/Roxie Rootbeer.png" },
+
+      { id:"poly burge",     cat:"Mains",   name:"Poly Burger",    price:850,  desc:"Burger variant (3D)",          model:"models/poly burge.glb",                   thumb:"Images/burger.png" },
+
+      { id:"stylized cookies", cat:"Dessert", name:"Cookies",      price:300,  desc:"Stylized cookies (3D)",        model:"models/stylized cookies.glb",             thumb:"Images/stylized cookies.png" },
+
+      { id:"pasta with meatballs and sausage", cat:"Mains", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)",
+        model:"models/pasta with meatballs and sausage.glb", thumb:"Images/pasta with meat...png" }
     ];
 
     const cats = [...new Set(dishes.map(d => d.cat))];

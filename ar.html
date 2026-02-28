@@ -124,7 +124,7 @@
         <div style="font-weight:900;margin-bottom:6px">Pay via M-Pesa (Manual)</div>
         <div class="small">
           1) M-Pesa → <b>Lipa na M-Pesa</b><br/>
-          2) Choose <b>Buy Goods</b> (Till) or <b>Paybill</b><br/>
+          2) Choose <b>Buy Goods</b> (Till)<br/>
           3) Enter business number, amount, and reference below<br/>
           4) Tap <b>Send Confirmation</b> (WhatsApp)
         </div>
@@ -134,8 +134,8 @@
           <div class="code" id="methodOut">TILL</div>
         </div>
         <div class="kv">
-          <div class="small">Till / Paybill</div>
-          <div class="code" id="bizNo">123456</div>
+          <div class="small">Till Number</div>
+          <div class="code" id="bizNo">8711138</div>
         </div>
         <div class="kv">
           <div class="small">Account / Reference</div>
@@ -155,7 +155,7 @@
       </div>
 
       <div class="small" style="margin-top:10px;opacity:.75">
-        STK Push needs a backend (Safaricom Daraja API). This MVP uses manual M-Pesa + WhatsApp proof.
+        If AR fails on some phones, you can still rotate/zoom the 3D model here.
       </div>
     </div>
   </div>
@@ -165,31 +165,40 @@
     const CART_KEY = "mv_cart_v1";
 
     // WhatsApp business number (no +)
-    const WHATSAPP_NUMBER = "254745482764"; // CHANGE THIS
+    const WHATSAPP_NUMBER = "254745482764"; // ✅ CHANGE to restaurant WhatsApp if different
 
     // M-Pesa manual details
-    const MPESA_METHOD = "TILL";   // "TILL" or "PAYBILL"
-    const MPESA_BIZ_NO = "123456"; // your Till or Paybill number
+    const MPESA_METHOD = "TILL";
+    const MPESA_BIZ_NO = "8711138";
 
-    // ========= DISH CATALOG (same ids as index.html) =========
+    // ========= DISH CATALOG (matches index.html ids + real model filenames) =========
     const dishes = [
-      { id:"a_roast_chickenpoultry_meshy", name:"Roast Chicken", price:950,  desc:"Roasted chicken (3D)", model:"models/a_roast_chickenpoultry_meshy.glb" },
-      { id:"avocado",  name:"Avocado",      price:250,  desc:"Fresh avocado (3D)",   model:"models/avocado.glb" },
-      { id:"avalon_lemon", name:"Lemon",    price:200,  desc:"Avalon lemon (3D)",    model:"models/avalon_lemon.glb" },
-      { id:"bread",    name:"Bread",        price:200,  desc:"Bread loaf (3D)",      model:"models/bread.glb" },
-      { id:"burger",   name:"Burger",       price:850,  desc:"Burger (3D)",          model:"models/burger.glb" },
-      { id:"chicken",  name:"Chicken",      price:900,  desc:"Chicken dish (3D)",    model:"models/chicken.glb" },
-      { id:"croissant",name:"Croissant",    price:280,  desc:"Croissant (3D)",       model:"models/croissant.glb" },
-      { id:"fries",    name:"Fries",        price:350,  desc:"Crispy fries (3D)",    model:"models/fries.glb" },
-      { id:"large_orange", name:"Orange",   price:200,  desc:"Large orange (3D)",    model:"models/large_orange.glb" },
-      { id:"lasagna",  name:"Lasagna",      price:1200, desc:"Lasagna (3D)",         model:"models/lasagna.glb" },
-      { id:"mexican_avocado", name:"Mexican Avocado", price:250, desc:"Mexican avocado (3D)", model:"models/mexican_avocado.glb" },
-      { id:"passion_fruit", name:"Passion Fruit", price:180, desc:"Passion fruit (3D)", model:"models/passion_fruit.glb" },
-      { id:"pasta_with_meatballs_and_sausage", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)", model:"models/pasta_with_meatballs_and_sausage.glb" },
-      { id:"persian_lime", name:"Persian Lime", price:150, desc:"Persian lime (3D)", model:"models/persian_lime.glb" },
-      { id:"ripe_banana", name:"Banana",    price:100,  desc:"Ripe banana (3D)",     model:"models/ripe_banana.glb" },
-      { id:"stylized_cookies", name:"Cookies", price:300, desc:"Stylized cookies (3D)", model:"models/stylized_cookies.glb" },
-      { id:"sushi",    name:"Sushi",        price:1500, desc:"Sushi (3D)",           model:"models/sushi.glb" }
+      { id:"Burger-drink", name:"Burger + Drink", price:900, desc:"Combo meal (3D)", model:"models/Burger-drink.glb" },
+      { id:"CheeseBurger", name:"Cheese Burger", price:850, desc:"Cheesy burger (3D)", model:"models/CheeseBurger.glb" },
+      { id:"chicken", name:"Chicken", price:900, desc:"Chicken dish (3D)", model:"models/chicken.glb" },
+      { id:"fries", name:"Fries", price:350, desc:"Crispy fries (3D)", model:"models/fries.glb" },
+      { id:"sushi", name:"Sushi", price:1500, desc:"Sushi (3D)", model:"models/sushi.glb" },
+      { id:"lasagna", name:"Lasagna", price:1200, desc:"Lasagna (3D)", model:"models/lasagna.glb" },
+
+      { id:"avalon lemon", name:"Lemon", price:200, desc:"Avalon lemon (3D)", model:"models/avalon lemon.glb" },
+      { id:"avocado", name:"Avocado", price:250, desc:"Fresh avocado (3D)", model:"models/avocado.glb" },
+      { id:"mexican avocado", name:"Mexican Avocado", price:250, desc:"Mexican avocado (3D)", model:"models/mexican avocado.glb" },
+      { id:"passion fruit", name:"Passion Fruit", price:180, desc:"Passion fruit (3D)", model:"models/passion fruit.glb" },
+      { id:"persian lime", name:"Persian Lime", price:150, desc:"Persian lime (3D)", model:"models/persian lime.glb" },
+      { id:"large orange", name:"Orange", price:200, desc:"Large orange (3D)", model:"models/large orange.glb" },
+
+      { id:"bread", name:"Bread", price:200, desc:"Bread loaf (3D)", model:"models/bread.glb" },
+      { id:"croissant", name:"Croissant", price:280, desc:"Croissant (3D)", model:"models/croissant.glb" },
+
+      { id:"huel bottle", name:"Huel Bottle", price:450, desc:"Bottle drink (3D)", model:"models/huel bottle.glb" },
+      { id:"litchi juice", name:"Litchi Juice", price:350, desc:"Litchi juice (3D)", model:"models/litchi juice.glb" },
+      { id:"Roxie Rootbeer", name:"Root Beer", price:300, desc:"Roxie Rootbeer (3D)", model:"models/Roxie Rootbeer.glb" },
+
+      { id:"poly burge", name:"Poly Burger", price:850, desc:"Burger variant (3D)", model:"models/poly burge.glb" },
+
+      { id:"stylized cookies", name:"Cookies", price:300, desc:"Stylized cookies (3D)", model:"models/stylized cookies.glb" },
+
+      { id:"pasta with meatballs and sausage", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)", model:"models/pasta with meatballs and sausage.glb" }
     ];
 
     // ========= ELEMENTS =========
