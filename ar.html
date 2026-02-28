@@ -1,192 +1,161 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>MenuVista • AR Viewer</title>
 
-<script type="module"
-  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
 <style>
-body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
-model-viewer{width:100vw;height:100vh;background:#0b0b10}
-
-.panel{
-position:absolute;left:14px;right:14px;bottom:14px;
-background:rgba(0,0,0,.55);
-border-radius:18px;padding:14px;
-display:flex;gap:12px;align-items:flex-end;justify-content:space-between
-}
-
-.title{font-size:18px;font-weight:900;margin:0 0 6px}
-.price{color:#FF7A2F;font-weight:900}
-button{border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
-.primary{background:#FF7A2F;color:#111}
-.ghost{background:rgba(255,255,255,.1);color:#fff}
-.wa{background:#25D366;color:#111}
-
-.modal{
-position:fixed;inset:0;background:rgba(0,0,0,.6);
-display:none;align-items:center;justify-content:center
-}
-.modal.show{display:flex}
-
-.modal-card{
-background:#111;padding:18px;border-radius:18px;
-width:92%;max-width:420px
-}
-.box{background:rgba(255,255,255,.05);padding:12px;border-radius:14px;margin-top:12px}
-.small{opacity:.8;font-size:13px}
+  :root { color-scheme: dark; }
+  body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+  model-viewer{
+    width:100vw;height:100vh;
+    background:
+      radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
+      radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
+      #0b0b10;
+  }
+  .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;z-index:5}
+  .chip{padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(10px);font-weight:900;font-size:13px;cursor:pointer}
+  .panel{
+    position:absolute;left:14px;right:14px;bottom:14px;
+    background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);
+    backdrop-filter:blur(12px);border-radius:18px;padding:14px;z-index:5;
+    display:flex;gap:12px;align-items:flex-end;justify-content:space-between;
+  }
+  .title{font-size:18px;font-weight:900;margin:0 0 6px}
+  .meta{margin:0;opacity:.9;font-size:13px;line-height:1.35}
+  .price{font-weight:900;color:#FF7A2F}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  button{border:0;border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
+  .primary{background:#FF7A2F;color:#111}
+  .ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14)}
+  button[disabled]{opacity:.45;cursor:not-allowed}
+  .toast{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.10);backdrop-filter:blur(12px);
+    font-size:13px;max-width:88vw;text-align:center;display:none;z-index:6
+  }
+  .toast.show{display:block}
 </style>
 </head>
 
 <body>
 
+<div class="topbar">
+  <div class="chip" onclick="location.href='index.html'">← Menu</div>
+  <div class="chip" id="supportChip">Checking AR support…</div>
+</div>
+
 <model-viewer id="mv"
-src=""
-camera-controls auto-rotate ar ar-modes="webxr scene-viewer quick-look"
-shadow-intensity="1"></model-viewer>
+  src=""
+  camera-controls
+  auto-rotate
+  shadow-intensity="1"
+  environment-image="neutral"
+  exposure="1.0"
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  ar-placement="floor">
+</model-viewer>
+
+<div id="toast" class="toast show">Loading 3D model…</div>
 
 <div class="panel">
-<div>
-<p class="title" id="dishName"></p>
-<p class="price" id="dishPrice"></p>
-</div>
-
-<div style="display:flex;gap:8px">
-<button class="ghost" id="addCart">Add</button>
-<button class="wa" id="openCart">Cart</button>
-<button class="primary" id="btnAR">View in AR</button>
-</div>
-</div>
-
-<!-- CHECKOUT MODAL -->
-<div class="modal" id="checkoutModal">
-<div class="modal-card">
-<h3>Checkout</h3>
-
-<div id="cartItems"></div>
-<div style="margin-top:8px;font-weight:900">Total: KSh <span id="cartTotal">0</span></div>
-
-<!-- STK PUSH -->
-<div class="box">
-<div style="font-weight:900">Pay via M-Pesa STK Push</div>
-<div class="small">Enter phone and tap Pay</div>
-
-<input id="stkPhone" placeholder="07XXXXXXXX"
-style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:none;background:#222;color:#fff;font-weight:900">
-
-<button class="primary" id="stkPayBtn" style="width:100%;margin-top:8px">Pay Now (STK)</button>
-<div class="small" id="stkStatus" style="margin-top:6px"></div>
-</div>
-
-<button class="ghost" style="width:100%;margin-top:10px"
-onclick="document.getElementById('checkoutModal').classList.remove('show')">
-Close</button>
-
-</div>
+  <div style="max-width:58ch">
+    <p class="title" id="dishName">Loading…</p>
+    <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
+    <p class="meta" id="statusText">Tip: If AR fails, you can still rotate/zoom the 3D model here.</p>
+  </div>
+  <div class="actions">
+    <button class="ghost" id="btnReset">Reset</button>
+    <button class="primary" id="btnAR">View in AR</button>
+  </div>
 </div>
 
 <script>
+  // ===== DISHES (must match index.html EXACTLY) =====
+  const dishes = [
+    { id:"avalon lemon", name:"Avalon Lemon", price:200, desc:"3D preview", model:"models/avalon lemon.glb" },
+    { id:"avocado", name:"Avocado", price:250, desc:"3D preview", model:"models/avocado.glb" },
+    { id:"bread", name:"Bread", price:200, desc:"3D preview", model:"models/bread.glb" },
+    { id:"Burger-drink", name:"Burger Drink Combo", price:900, desc:"3D preview", model:"models/Burger-drink.glb" },
+    { id:"CheeseBurger", name:"Cheese Burger", price:850, desc:"3D preview", model:"models/CheeseBurger.glb" },
+    { id:"chicken", name:"Chicken", price:900, desc:"3D preview", model:"models/chicken.glb" },
+    { id:"croissant", name:"Croissant", price:280, desc:"3D preview", model:"models/croissant.glb" },
+    { id:"fries", name:"Fries", price:350, desc:"3D preview", model:"models/fries.glb" },
+    { id:"huel bottle", name:"Huel Bottle", price:450, desc:"3D preview", model:"models/huel bottle.glb" },
+    { id:"large orange", name:"Large Orange", price:200, desc:"3D preview", model:"models/large orange.glb" },
+    { id:"lasagna", name:"Lasagna", price:1200, desc:"3D preview", model:"models/lasagna.glb" },
+    { id:"litchi juice", name:"Litchi Juice", price:350, desc:"3D preview", model:"models/litchi juice.glb" },
+    { id:"mexican avocado", name:"Mexican Avocado", price:250, desc:"3D preview", model:"models/mexican avocado.glb" },
+    { id:"passion fruit", name:"Passion Fruit", price:180, desc:"3D preview", model:"models/passion fruit.glb" },
+    { id:"pasta with meatballs and sausage", name:"Pasta & Meatballs", price:1300, desc:"3D preview", model:"models/pasta with meatballs and sausage.glb" },
+    { id:"persian lime", name:"Persian Lime", price:150, desc:"3D preview", model:"models/persian lime.glb" },
+    { id:"poly burge", name:"Poly Burger", price:850, desc:"3D preview", model:"models/poly burge.glb" },
+    { id:"Roxie Rootbeer", name:"Root Beer", price:300, desc:"3D preview", model:"models/Roxie Rootbeer.glb" },
+    { id:"stylized cookies", name:"Cookies", price:300, desc:"3D preview", model:"models/stylized cookies.glb" },
+    { id:"sushi", name:"Sushi", price:1500, desc:"3D preview", model:"models/sushi.glb" }
+  ];
 
-// ===== CONFIG =====
-const BACKEND_BASE="http://localhost:8081"; // change after deploy
+  const mv = document.getElementById("mv");
+  const toast = document.getElementById("toast");
+  const supportChip = document.getElementById("supportChip");
+  const btnAR = document.getElementById("btnAR");
+  const btnReset = document.getElementById("btnReset");
+  const dishName = document.getElementById("dishName");
+  const dishPrice = document.getElementById("dishPrice");
+  const dishDesc = document.getElementById("dishDesc");
 
-// ===== DISHES =====
-const dishes=[
-{ id:"burger",name:"Burger",price:850,model:"models/burger.glb"},
-{ id:"fries",name:"Fries",price:350,model:"models/fries.glb"},
-{ id:"chicken",name:"Chicken",price:900,model:"models/chicken.glb"}
-];
+  function setToast(msg, show=true){
+    toast.textContent = msg;
+    toast.classList.toggle("show", !!show);
+  }
 
-// ===== ELEMENTS =====
-const mv=document.getElementById("mv");
-const dishName=document.getElementById("dishName");
-const dishPrice=document.getElementById("dishPrice");
-const btnAR=document.getElementById("btnAR");
-const addCart=document.getElementById("addCart");
-const openCart=document.getElementById("openCart");
-const cartItems=document.getElementById("cartItems");
-const cartTotal=document.getElementById("cartTotal");
-const modal=document.getElementById("checkoutModal");
-const stkPhone=document.getElementById("stkPhone");
-const stkPayBtn=document.getElementById("stkPayBtn");
-const stkStatus=document.getElementById("stkStatus");
+  const p = new URLSearchParams(location.search);
+  const dishId = p.get("dish") || dishes[0].id;
+  const dish = dishes.find(d => d.id === dishId) || dishes[0];
 
-// ===== LOAD DISH FROM URL =====
-const id=new URLSearchParams(location.search).get("dish")||dishes[0].id;
-let current=dishes.find(d=>d.id===id)||dishes[0];
+  dishName.textContent = dish.name;
+  dishPrice.textContent = "KSh " + dish.price;
+  dishDesc.textContent = "— " + dish.desc;
 
-mv.src=current.model;
-dishName.textContent=current.name;
-dishPrice.textContent="KSh "+current.price;
+  setToast("Loading 3D model…", true);
+  mv.src = dish.model;
 
-// ===== CART =====
-let cart=[];
+  mv.addEventListener("load", () => setToast("", false));
+  mv.addEventListener("error", () => {
+    setToast("Model failed to load. Check filename/path (GitHub Pages is case-sensitive).", true);
+    btnAR.disabled = true;
+    supportChip.textContent = "Model load error";
+  });
 
-addCart.onclick=()=>{
-cart.push(current);
-alert(current.name+" added");
-};
+  btnReset.onclick = () => {
+    mv.cameraOrbit = "0deg 75deg 2.5m";
+    mv.fieldOfView = "30deg";
+  };
 
-openCart.onclick=()=>{
-renderCart();
-modal.classList.add("show");
-};
+  btnAR.onclick = async () => {
+    try { await mv.activateAR(); }
+    catch(e){
+      setToast("AR could not start on this device. 3D preview still works.", true);
+    }
+  };
 
-function renderCart(){
-cartItems.innerHTML="";
-let total=0;
-
-cart.forEach(d=>{
-total+=d.price;
-cartItems.innerHTML+=`<div>${d.name} — KSh ${d.price}</div>`;
-});
-
-cartTotal.textContent=total;
-
-// STK LOGIC
-stkStatus.textContent="";
-stkPayBtn.onclick=async()=>{
-try{
-const phone=stkPhone.value.trim();
-if(!phone){stkStatus.textContent="Enter phone";return;}
-
-stkStatus.textContent="Sending STK...";
-stkPayBtn.disabled=true;
-
-const res=await fetch(`${BACKEND_BASE}/api/mpesa/stkpush`,{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-phone,
-amount:total,
-accountReference:"MenuVista",
-transactionDesc:"MenuVista"
-})
-});
-
-const data=await res.json();
-
-if(!data.ok){
-stkStatus.textContent="STK failed";
-stkPayBtn.disabled=false;
-return;
-}
-
-stkStatus.textContent="STK sent. Check phone.";
-
-}catch(e){
-stkStatus.textContent="Backend not reachable";
-stkPayBtn.disabled=false;
-}
-};
-}
-
-// ===== AR BUTTON =====
-btnAR.onclick=()=>mv.activateAR();
-
+  // AR support chip
+  (async function(){
+    let webxrAR=false;
+    if(navigator.xr && navigator.xr.isSessionSupported){
+      try { webxrAR = await navigator.xr.isSessionSupported("immersive-ar"); } catch(_){}
+    }
+    if(webxrAR) supportChip.textContent = "AR supported (WebXR)";
+    else if(mv.canActivateAR) supportChip.textContent = "AR available (Scene Viewer/Quick Look)";
+    else { supportChip.textContent = "AR not supported (3D only)"; btnAR.disabled = true; }
+  })();
 </script>
+
 </body>
 </html>
