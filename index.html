@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MenuVista • Menu</title>
+<title>MenuVista • AR Menu</title>
 
 <style>
 body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
 .wrap{max-width:1100px;margin:0 auto;padding:18px}
-.brand{font-weight:900;font-size:18px}
+.brand{font-weight:900;font-size:18px;margin-bottom:14px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (min-width:860px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
 .card{border:1px solid rgba(255,255,255,.12);border-radius:18px;overflow:hidden;background:#111}
@@ -22,107 +22,58 @@ body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
 
 <body>
 <div class="wrap">
-
 <div class="brand">MenuVista • AR Menu</div>
-<div style="opacity:.7;margin-bottom:14px">Tap a dish to view it in AR</div>
-
 <div class="grid" id="menu"></div>
-
 </div>
 
 <script>
+
 /*
-IMPORTANT:
-These names must match your repo EXACTLY (case sensitive)
-Models → /models/*.glb
-Images → /Images/*.png
+These names EXACTLY match your screenshot
+No renaming needed
 */
 
 const dishes=[
 
-{ id:"a_roast_chickenpoultry_meshy",
-  name:"Roast Chicken",
-  price:950,
-  model:"models/a_roast_chickenpoultry_meshy.glb",
-  thumb:"Images/A roasted chicken.png" },
+{ id:"avalon lemon", model:"models/avalon lemon.glb", thumb:"Images/avalon lemon.png", price:200, name:"Avalon Lemon" },
 
-{ id:"avocado",
-  name:"Avocado",
-  price:250,
-  model:"models/avocado.glb",
-  thumb:"Images/avocado.png" },
+{ id:"avocado", model:"models/avocado.glb", thumb:"Images/avocado.png", price:250, name:"Avocado" },
 
-{ id:"avalon_lemon",
-  name:"Avalon Lemon",
-  price:200,
-  model:"models/avalon_lemon.glb",
-  thumb:"Images/avalon lemon.png" },
+{ id:"bread", model:"models/bread.glb", thumb:"Images/bread.png", price:200, name:"Bread" },
 
-{ id:"bread",
-  name:"Bread",
-  price:200,
-  model:"models/bread.glb",
-  thumb:"Images/bread.png" },
+{ id:"Burger-drink", model:"models/Burger-drink.glb", thumb:"Images/burger.png", price:900, name:"Burger Drink Combo" },
 
-{ id:"croissant",
-  name:"Croissant",
-  price:280,
-  model:"models/croissant.glb",
-  thumb:"Images/croissant.png" },
+{ id:"CheeseBurger", model:"models/CheeseBurger.glb", thumb:"Images/CheeseBurger.png", price:850, name:"Cheese Burger" },
 
-{ id:"large_orange",
-  name:"Large Orange",
-  price:200,
-  model:"models/large_orange.glb",
-  thumb:"Images/Large_orange.png" },
+{ id:"chicken", model:"models/chicken.glb", thumb:"Images/chicken.png", price:900, name:"Chicken" },
 
-{ id:"lasagna",
-  name:"Lasagna",
-  price:1200,
-  model:"models/lasagna.glb",
-  thumb:"Images/lasagna.png" },
+{ id:"croissant", model:"models/croissant.glb", thumb:"Images/croissant.png", price:280, name:"Croissant" },
 
-{ id:"mexican_avocado",
-  name:"Mexican Avocado",
-  price:250,
-  model:"models/mexican_avocado.glb",
-  thumb:"Images/mexican Avocado.png" },
+{ id:"fries", model:"models/fries.glb", thumb:"Images/fries.png", price:350, name:"Fries" },
 
-{ id:"passion_fruit",
-  name:"Passion Fruit",
-  price:180,
-  model:"models/passion_fruit.glb",
-  thumb:"Images/passion fruit.png" },
+{ id:"huel bottle", model:"models/huel bottle.glb", thumb:"Images/huel bottle.png", price:450, name:"Huel Bottle" },
 
-{ id:"pasta_with_meatballs_and_sausage",
-  name:"Pasta & Meatballs",
-  price:1300,
-  model:"models/pasta_with_meatballs_and_sausage.glb",
-  thumb:"Images/pasta with meat....png" },
+{ id:"large orange", model:"models/large orange.glb", thumb:"Images/Large_orange.png", price:200, name:"Large Orange" },
 
-{ id:"persian_lime",
-  name:"Persian Lime",
-  price:150,
-  model:"models/persian_lime.glb",
-  thumb:"Images/persian lime.png" },
+{ id:"lasagna", model:"models/lasagna.glb", thumb:"Images/lasagna.png", price:1200, name:"Lasagna" },
 
-{ id:"ripe_banana",
-  name:"Ripe Banana",
-  price:100,
-  model:"models/ripe_banana.glb",
-  thumb:"Images/Ripe banana.png" },
+{ id:"litchi juice", model:"models/litchi juice.glb", thumb:"Images/litchi Juice.png", price:350, name:"Litchi Juice" },
 
-{ id:"stylized_cookies",
-  name:"Cookies",
-  price:300,
-  model:"models/stylized_cookies.glb",
-  thumb:"Images/stylized cookies.png" },
+{ id:"mexican avocado", model:"models/mexican avocado.glb", thumb:"Images/mexican Avocado.png", price:250, name:"Mexican Avocado" },
 
-{ id:"sushi",
-  name:"Sushi",
-  price:1500,
-  model:"models/sushi.glb",
-  thumb:"Images/sushi.png" }
+{ id:"passion fruit", model:"models/passion fruit.glb", thumb:"Images/passion fruit.png", price:180, name:"Passion Fruit" },
+
+{ id:"pasta with meatballs and sausage", model:"models/pasta with meatballs and sausage.glb", thumb:"Images/pasta with meat....png", price:1300, name:"Pasta & Meatballs" },
+
+{ id:"persian lime", model:"models/persian lime.glb", thumb:"Images/persian lime.png", price:150, name:"Persian Lime" },
+
+{ id:"poly burge", model:"models/poly burge.glb", thumb:"Images/burger.png", price:850, name:"Poly Burger" },
+
+{ id:"Roxie Rootbeer", model:"models/Roxie Rootbeer.glb", thumb:"Images/Roxie Rootbeer.png", price:300, name:"Root Beer" },
+
+{ id:"stylized cookies", model:"models/stylized cookies.glb", thumb:"Images/stylized cookies.png", price:300, name:"Cookies" },
+
+{ id:"sushi", model:"models/sushi.glb", thumb:"Images/sushi.png", price:1500, name:"Sushi" }
 
 ];
 
@@ -147,7 +98,7 @@ location.href=`ar.html?dish=${encodeURIComponent(d.id)}`;
 
 menu.appendChild(card);
 });
-</script>
 
+</script>
 </body>
 </html>
