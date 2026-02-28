@@ -1,369 +1,192 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • Restaurant Menu</title>
-  <style>
-    :root { color-scheme: dark; }
-    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    .brand{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-    .logo{font-weight:900;font-size:18px}
-    .sub{opacity:.8;font-size:13px;margin-top:4px}
-    .pill{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px}
-    .search{width:100%;margin:14px 0 6px}
-    input{
-      width:100%;padding:12px 14px;border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);color:#fff;outline:none;
-      font-weight:700;
-    }
-    h2{margin:18px 0 10px;font-size:16px}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    @media (min-width: 860px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr));} }
-    .card{
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.35);
-      border-radius:18px;overflow:hidden;
-      transition:transform .12s ease;
-    }
-    .card:hover{transform:translateY(-2px)}
-    .thumb{height:150px;background:rgba(255,255,255,.03);background-size:cover;background-position:center}
-    .body{padding:12px}
-    .name{font-weight:900;margin:0 0 4px}
-    .desc{margin:0;opacity:.85;font-size:12.5px;line-height:1.3}
-    .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
-    .price{font-weight:900;color:#FF7A2F}
-    .btn{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px;cursor:pointer;user-select:none}
-    .views{opacity:.7;font-size:12px}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MenuVista • AR Viewer</title>
 
-    /* Cart button (top right) */
-    .cartBtn{
-      display:flex;gap:8px;align-items:center;cursor:pointer;
-      padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.08);font-weight:900;font-size:12px;
-      user-select:none;
-    }
-    .badge{
-      min-width:22px;height:22px;border-radius:999px;
-      display:inline-flex;align-items:center;justify-content:center;
-      background:#FF7A2F;color:#111;font-weight:900;font-size:12px;
-      padding:0 6px;
-    }
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-    /* Cart drawer */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50}
-    .overlay.show{display:block}
-    .drawer{
-      position:fixed;top:0;right:0;height:100%;width:min(420px, 92vw);
-      background:rgba(10,10,16,.92);
-      border-left:1px solid rgba(255,255,255,.12);
-      backdrop-filter: blur(12px);
-      transform: translateX(100%);
-      transition: transform .18s ease;
-      z-index:60;
-      display:flex;flex-direction:column;
-    }
-    .drawer.show{transform: translateX(0)}
-    .drawerHeader{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .drawerTitle{font-weight:900}
-    .close{cursor:pointer;opacity:.85}
-    .cartList{padding:0 14px 14px;overflow:auto;flex:1}
-    .item{
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:16px;
-      padding:10px 10px;
-      display:flex;justify-content:space-between;gap:10px;
-      margin-bottom:10px;
-      background:rgba(0,0,0,.25);
-    }
-    .itemName{font-weight:900;margin:0 0 4px}
-    .itemMeta{opacity:.85;font-size:12px;margin:0}
-    .qtyRow{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-    .qtyBtn{
-      width:34px;height:34px;border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.08);color:#fff;
-      font-weight:900;cursor:pointer;
-    }
-    .qty{min-width:26px;text-align:center;font-weight:900}
-    .drawerFooter{
-      border-top:1px solid rgba(255,255,255,.12);
-      padding:12px 14px 14px;
-      background:rgba(0,0,0,.25);
-    }
-    .totalRow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    .totalLabel{opacity:.85}
-    .totalAmt{font-weight:900;color:#FF7A2F}
-    .ctaRow{display:flex;gap:10px;flex-wrap:wrap}
-    .primary{
-      background:#FF7A2F;color:#111;border:0;border-radius:14px;
-      padding:10px 12px;font-weight:900;cursor:pointer;flex:1
-    }
-    .ghost{
-      background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14);
-      border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;
-    }
-    .muted{opacity:.75;font-size:12px;margin-top:10px;line-height:1.35}
-  </style>
+<style>
+body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+model-viewer{width:100vw;height:100vh;background:#0b0b10}
+
+.panel{
+position:absolute;left:14px;right:14px;bottom:14px;
+background:rgba(0,0,0,.55);
+border-radius:18px;padding:14px;
+display:flex;gap:12px;align-items:flex-end;justify-content:space-between
+}
+
+.title{font-size:18px;font-weight:900;margin:0 0 6px}
+.price{color:#FF7A2F;font-weight:900}
+button{border:0;border-radius:12px;padding:10px 14px;font-weight:900;cursor:pointer}
+.primary{background:#FF7A2F;color:#111}
+.ghost{background:rgba(255,255,255,.1);color:#fff}
+.wa{background:#25D366;color:#111}
+
+.modal{
+position:fixed;inset:0;background:rgba(0,0,0,.6);
+display:none;align-items:center;justify-content:center
+}
+.modal.show{display:flex}
+
+.modal-card{
+background:#111;padding:18px;border-radius:18px;
+width:92%;max-width:420px
+}
+.box{background:rgba(255,255,255,.05);padding:12px;border-radius:14px;margin-top:12px}
+.small{opacity:.8;font-size:13px}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="brand">
-      <div>
-        <div class="logo">MenuVista • Demo Restaurant</div>
-        <div class="sub">Preview food in AR, add to cart, checkout via WhatsApp + M-Pesa.</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <div class="pill">QR → Menu</div>
-        <div class="cartBtn" id="openCartBtn">
-          Cart <span class="badge" id="cartCount">0</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="search">
-      <input id="q" placeholder="Search dishes (e.g., burger, sushi, fries)..." />
-    </div>
+<model-viewer id="mv"
+src=""
+camera-controls auto-rotate ar ar-modes="webxr scene-viewer quick-look"
+shadow-intensity="1"></model-viewer>
 
-    <div id="menu"></div>
-  </div>
+<div class="panel">
+<div>
+<p class="title" id="dishName"></p>
+<p class="price" id="dishPrice"></p>
+</div>
 
-  <!-- Cart Drawer -->
-  <div class="overlay" id="overlay"></div>
-  <div class="drawer" id="drawer">
-    <div class="drawerHeader">
-      <div class="drawerTitle">Your Cart</div>
-      <div class="close" id="closeCartBtn">✕</div>
-    </div>
-    <div class="cartList" id="cartList"></div>
-    <div class="drawerFooter">
-      <div class="totalRow">
-        <div class="totalLabel">Total</div>
-        <div class="totalAmt" id="cartTotal">KSh 0</div>
-      </div>
-      <div class="ctaRow">
-        <button class="ghost" id="clearCartBtn">Clear</button>
-        <button class="primary" id="checkoutBtn">Checkout</button>
-      </div>
-      <div class="muted">
-        Checkout opens payment instructions (M-Pesa) + WhatsApp order summary.
-      </div>
-    </div>
-  </div>
+<div style="display:flex;gap:8px">
+<button class="ghost" id="addCart">Add</button>
+<button class="wa" id="openCart">Cart</button>
+<button class="primary" id="btnAR">View in AR</button>
+</div>
+</div>
 
-  <script>
-    // =========================
-    // CONFIG
-    // =========================
-    const CART_KEY = "mv_cart_v1";
+<!-- CHECKOUT MODAL -->
+<div class="modal" id="checkoutModal">
+<div class="modal-card">
+<h3>Checkout</h3>
 
-    // ✅ ONLY GLB + IMAGE (your folders: models/ and Images/)
-    // NOTE: Filenames must match exactly (case-sensitive on GitHub Pages).
-    const dishes = [
-      { id:"a_roast_chickenpoultry_meshy", cat:"Mains",  name:"Roast Chicken",      price:950,  desc:"Roasted chicken (3D)",           model:"models/a_roast_chickenpoultry_meshy.glb", thumb:"Images/A roasted chicken.png" },
-      { id:"avocado",                      cat:"Fruits", name:"Avocado",            price:250,  desc:"Fresh avocado (3D)",              model:"models/avocado.glb",                      thumb:"Images/avocado.png" },
-      { id:"avalon_lemon",                 cat:"Fruits", name:"Lemon",              price:200,  desc:"Avalon lemon (3D)",               model:"models/avalon_lemon.glb",                 thumb:"Images/avalon lemon.png" },
-      { id:"bread",                        cat:"Bakery", name:"Bread",              price:200,  desc:"Bread loaf (3D)",                 model:"models/bread.glb",                        thumb:"Images/bread.png" },
-      { id:"burger",                       cat:"Mains",  name:"Burger",             price:850,  desc:"Burger (3D)",                     model:"models/burger.glb",                       thumb:"Images/burger.png" },
-      { id:"chicken",                      cat:"Mains",  name:"Chicken",            price:900,  desc:"Chicken dish (3D)",               model:"models/chicken.glb",                      thumb:"Images/chicken.png" },
-      { id:"croissant",                    cat:"Bakery", name:"Croissant",          price:280,  desc:"Croissant (3D)",                  model:"models/croissant.glb",                    thumb:"Images/croissant.png" },
-      { id:"fries",                        cat:"Sides",  name:"Fries",              price:350,  desc:"Crispy fries (3D)",               model:"models/fries.glb",                        thumb:"Images/fries.png" },
-      { id:"large_orange",                 cat:"Fruits", name:"Orange",             price:200,  desc:"Large orange (3D)",               model:"models/large_orange.glb",                 thumb:"Images/Large_orange.png" },
-      { id:"lasagna",                      cat:"Mains",  name:"Lasagna",            price:1200, desc:"Lasagna (3D)",                    model:"models/lasagna.glb",                      thumb:"Images/lasagna.png" },
-      { id:"mexican_avocado",              cat:"Fruits", name:"Mexican Avocado",    price:250,  desc:"Mexican avocado (3D)",            model:"models/mexican_avocado.glb",              thumb:"Images/mexican Avocado.png" },
-      { id:"passion_fruit",                cat:"Fruits", name:"Passion Fruit",      price:180,  desc:"Passion fruit (3D)",              model:"models/passion_fruit.glb",                thumb:"Images/passion fruit.png" },
-      { id:"pasta_with_meatballs_and_sausage", cat:"Mains", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)",     model:"models/pasta_with_meatballs_and_sausage.glb", thumb:"Images/pasta_with_meatballs_and_sausage.png" },
-      { id:"persian_lime",                 cat:"Fruits", name:"Persian Lime",       price:150,  desc:"Persian lime (3D)",               model:"models/persian_lime.glb",                 thumb:"Images/persian lime.png" },
-      { id:"ripe_banana",                  cat:"Fruits", name:"Banana",             price:100,  desc:"Ripe banana (3D)",                model:"models/ripe_banana.glb",                  thumb:"Images/Ripe banana.png" },
-      { id:"stylized_cookies",             cat:"Dessert",name:"Cookies",            price:300,  desc:"Stylized cookies (3D)",           model:"models/stylized_cookies.glb",             thumb:"Images/stylized cookies.png" },
-      { id:"sushi",                        cat:"Mains",  name:"Sushi",              price:1500, desc:"Sushi (3D)",                      model:"models/sushi.glb",                        thumb:"Images/sushi.png" }
-    ];
+<div id="cartItems"></div>
+<div style="margin-top:8px;font-weight:900">Total: KSh <span id="cartTotal">0</span></div>
 
-    const cats = [...new Set(dishes.map(d => d.cat))];
-    const menuEl = document.getElementById("menu");
-    const q = document.getElementById("q");
+<!-- STK PUSH -->
+<div class="box">
+<div style="font-weight:900">Pay via M-Pesa STK Push</div>
+<div class="small">Enter phone and tap Pay</div>
 
-    // =========================
-    // CART STORAGE
-    // =========================
-    function loadCart(){
-      try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); }
-      catch { return {}; }
-    }
-    function saveCart(cart){
-      localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      updateCartUI();
-    }
-    function addToCart(id){
-      const cart = loadCart();
-      cart[id] = (cart[id] || 0) + 1;
-      saveCart(cart);
-      openCart();
-    }
-    function setQty(id, qty){
-      const cart = loadCart();
-      if(qty <= 0) delete cart[id];
-      else cart[id] = qty;
-      saveCart(cart);
-    }
-    function clearCart(){
-      localStorage.removeItem(CART_KEY);
-      updateCartUI();
-    }
+<input id="stkPhone" placeholder="07XXXXXXXX"
+style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:none;background:#222;color:#fff;font-weight:900">
 
-    function cartCount(cart){
-      return Object.values(cart).reduce((a,b)=>a+b,0);
-    }
-    function cartTotal(cart){
-      let total = 0;
-      for(const [id, qty] of Object.entries(cart)){
-        const d = dishes.find(x => x.id === id);
-        if(d) total += d.price * qty;
-      }
-      return total;
-    }
-    function formatKsh(n){
-      return "KSh " + Number(n).toLocaleString("en-KE");
-    }
+<button class="primary" id="stkPayBtn" style="width:100%;margin-top:8px">Pay Now (STK)</button>
+<div class="small" id="stkStatus" style="margin-top:6px"></div>
+</div>
 
-    // =========================
-    // MENU RENDER
-    // =========================
-    function openDish(id){
-      location.href = `ar.html?dish=${encodeURIComponent(id)}`;
-    }
+<button class="ghost" style="width:100%;margin-top:10px"
+onclick="document.getElementById('checkoutModal').classList.remove('show')">
+Close</button>
 
-    function renderMenu(){
-      const term = q.value.trim().toLowerCase();
-      menuEl.innerHTML = "";
+</div>
+</div>
 
-      cats.forEach(cat => {
-        const section = document.createElement("div");
-        const title = document.createElement("h2");
-        title.textContent = cat;
-        section.appendChild(title);
+<script>
 
-        const grid = document.createElement("div");
-        grid.className = "grid";
+// ===== CONFIG =====
+const BACKEND_BASE="http://localhost:8081"; // change after deploy
 
-        dishes
-          .filter(d => d.cat === cat)
-          .filter(d => !term || (d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term)))
-          .forEach(d => {
-            const card = document.createElement("div");
-            card.className = "card";
+// ===== DISHES =====
+const dishes=[
+{ id:"burger",name:"Burger",price:850,model:"models/burger.glb"},
+{ id:"fries",name:"Fries",price:350,model:"models/fries.glb"},
+{ id:"chicken",name:"Chicken",price:900,model:"models/chicken.glb"}
+];
 
-            card.innerHTML = `
-              <div class="thumb" style="background-image:url('${d.thumb}')"></div>
-              <div class="body">
-                <p class="name">${d.name}</p>
-                <p class="desc">${d.desc}</p>
-                <div class="row">
-                  <div class="price">${formatKsh(d.price)}</div>
-                  <div style="display:flex;gap:8px">
-                    <div class="btn" data-action="ar">AR Preview</div>
-                    <div class="btn" data-action="add">Add</div>
-                  </div>
-                </div>
-              </div>
-            `;
+// ===== ELEMENTS =====
+const mv=document.getElementById("mv");
+const dishName=document.getElementById("dishName");
+const dishPrice=document.getElementById("dishPrice");
+const btnAR=document.getElementById("btnAR");
+const addCart=document.getElementById("addCart");
+const openCart=document.getElementById("openCart");
+const cartItems=document.getElementById("cartItems");
+const cartTotal=document.getElementById("cartTotal");
+const modal=document.getElementById("checkoutModal");
+const stkPhone=document.getElementById("stkPhone");
+const stkPayBtn=document.getElementById("stkPayBtn");
+const stkStatus=document.getElementById("stkStatus");
 
-            card.querySelector('[data-action="ar"]').onclick = (e) => { e.stopPropagation(); openDish(d.id); };
-            card.querySelector('[data-action="add"]').onclick = (e) => { e.stopPropagation(); addToCart(d.id); };
+// ===== LOAD DISH FROM URL =====
+const id=new URLSearchParams(location.search).get("dish")||dishes[0].id;
+let current=dishes.find(d=>d.id===id)||dishes[0];
 
-            grid.appendChild(card);
-          });
+mv.src=current.model;
+dishName.textContent=current.name;
+dishPrice.textContent="KSh "+current.price;
 
-        section.appendChild(grid);
-        menuEl.appendChild(section);
-      });
-    }
+// ===== CART =====
+let cart=[];
 
-    q.addEventListener("input", renderMenu);
+addCart.onclick=()=>{
+cart.push(current);
+alert(current.name+" added");
+};
 
-    // =========================
-    // CART DRAWER UI
-    // =========================
-    const overlay = document.getElementById("overlay");
-    const drawer = document.getElementById("drawer");
-    const openCartBtn = document.getElementById("openCartBtn");
-    const closeCartBtn = document.getElementById("closeCartBtn");
-    const cartListEl = document.getElementById("cartList");
-    const cartCountEl = document.getElementById("cartCount");
-    const cartTotalEl = document.getElementById("cartTotal");
-    const clearCartBtn = document.getElementById("clearCartBtn");
-    const checkoutBtn = document.getElementById("checkoutBtn");
+openCart.onclick=()=>{
+renderCart();
+modal.classList.add("show");
+};
 
-    function openCart(){
-      overlay.classList.add("show");
-      drawer.classList.add("show");
-      updateCartUI();
-    }
-    function closeCart(){
-      overlay.classList.remove("show");
-      drawer.classList.remove("show");
-    }
+function renderCart(){
+cartItems.innerHTML="";
+let total=0;
 
-    overlay.onclick = closeCart;
-    openCartBtn.onclick = openCart;
-    closeCartBtn.onclick = closeCart;
+cart.forEach(d=>{
+total+=d.price;
+cartItems.innerHTML+=`<div>${d.name} — KSh ${d.price}</div>`;
+});
 
-    clearCartBtn.onclick = () => clearCart();
+cartTotal.textContent=total;
 
-    checkoutBtn.onclick = () => {
-      const cart = loadCart();
-      if(cartCount(cart) === 0){
-        alert("Cart is empty.");
-        return;
-      }
-      const payload = encodeURIComponent(btoa(JSON.stringify(cart)));
-      location.href = `ar.html?checkout=1&cart=${payload}`;
-    };
+// STK LOGIC
+stkStatus.textContent="";
+stkPayBtn.onclick=async()=>{
+try{
+const phone=stkPhone.value.trim();
+if(!phone){stkStatus.textContent="Enter phone";return;}
 
-    function updateCartUI(){
-      const cart = loadCart();
-      cartCountEl.textContent = cartCount(cart);
-      cartTotalEl.textContent = formatKsh(cartTotal(cart));
+stkStatus.textContent="Sending STK...";
+stkPayBtn.disabled=true;
 
-      cartListEl.innerHTML = "";
-      const entries = Object.entries(cart);
+const res=await fetch(`${BACKEND_BASE}/api/mpesa/stkpush`,{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+phone,
+amount:total,
+accountReference:"MenuVista",
+transactionDesc:"MenuVista"
+})
+});
 
-      if(entries.length === 0){
-        cartListEl.innerHTML = `<div style="opacity:.8;padding:10px 2px">Your cart is empty.</div>`;
-        return;
-      }
+const data=await res.json();
 
-      entries.forEach(([id, qty]) => {
-        const d = dishes.find(x => x.id === id);
-        if(!d) return;
+if(!data.ok){
+stkStatus.textContent="STK failed";
+stkPayBtn.disabled=false;
+return;
+}
 
-        const item = document.createElement("div");
-        item.className = "item";
-        item.innerHTML = `
-          <div>
-            <p class="itemName">${d.name}</p>
-            <p class="itemMeta">${formatKsh(d.price)} each</p>
-          </div>
-          <div style="text-align:right">
-            <div class="itemMeta" style="margin-bottom:8px">${formatKsh(d.price * qty)}</div>
-            <div class="qtyRow">
-              <button class="qtyBtn" data-dec>-</button>
-              <div class="qty">${qty}</div>
-              <button class="qtyBtn" data-inc>+</button>
-            </div>
-          </div>
-        `;
-        item.querySelector("[data-dec]").onclick = () => setQty(id, qty-1);
-        item.querySelector("[data-inc]").onclick = () => setQty(id, qty+1);
-        cartListEl.appendChild(item);
-      });
-    }
+stkStatus.textContent="STK sent. Check phone.";
 
-    // INIT
-    renderMenu();
-    updateCartUI();
-  </script>
+}catch(e){
+stkStatus.textContent="Backend not reachable";
+stkPayBtn.disabled=false;
+}
+};
+}
+
+// ===== AR BUTTON =====
+btnAR.onclick=()=>mv.activateAR();
+
+</script>
 </body>
 </html>
