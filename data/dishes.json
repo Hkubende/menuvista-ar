@@ -1,0 +1,200 @@
+[
+  {
+    "id": "cheeseburger",
+    "cat": "Mains",
+    "name": "Cheese Burger",
+    "price": 850,
+    "desc": "Cheesy burger (3D)",
+    "model": "assets/models/CheeseBurger.glb",
+    "thumb": "assets/thumbs/CheeseBurger.png"
+  },
+  {
+    "id": "chicken",
+    "cat": "Mains",
+    "name": "Chicken",
+    "price": 900,
+    "desc": "Chicken dish (3D)",
+    "model": "assets/models/chicken.glb",
+    "thumb": "assets/thumbs/chicken.png"
+  },
+  {
+    "id": "sushi",
+    "cat": "Mains",
+    "name": "Sushi",
+    "price": 1500,
+    "desc": "Sushi (3D)",
+    "model": "assets/models/sushi.glb",
+    "thumb": "assets/thumbs/sushi.png"
+  },
+  {
+    "id": "lasagna",
+    "cat": "Mains",
+    "name": "Lasagna",
+    "price": 1200,
+    "desc": "Lasagna (3D)",
+    "model": "assets/models/lasagna.glb",
+    "thumb": "assets/thumbs/lasagna.png"
+  },
+  {
+    "id": "rice-and-paneer",
+    "cat": "Mains",
+    "name": "Rice and Paneer",
+    "price": 1200,
+    "desc": "Rice and paneer (3D)",
+    "model": "assets/models/rice and paneer.glb",
+    "thumb": "assets/thumbs/Rice and Paneer.png"
+  },
+  {
+    "id": "chapati-meat",
+    "cat": "Mains",
+    "name": "Chapati Meat",
+    "price": 1100,
+    "desc": "Chapati & meat (3D)",
+    "model": "assets/models/Chapati Meat.glb",
+    "thumb": "assets/thumbs/burger.png"
+  },
+  {
+    "id": "tasty-burger-with-fries",
+    "cat": "Mains",
+    "name": "Tasty Burger with Fries",
+    "price": 950,
+    "desc": "Burger with fries (3D)",
+    "model": "assets/models/tasty burger with fries.glb",
+    "thumb": "assets/thumbs/Tasty Burger with Fries.png"
+  },
+  {
+    "id": "poly-burge",
+    "cat": "Mains",
+    "name": "Poly Burger",
+    "price": 850,
+    "desc": "Burger variant (3D)",
+    "model": "assets/models/poly burge.glb",
+    "thumb": "assets/thumbs/burger.png"
+  },
+  {
+    "id": "avocado",
+    "cat": "Fruits",
+    "name": "Avocado",
+    "price": 250,
+    "desc": "Fresh avocado (3D)",
+    "model": "assets/models/avocado.glb",
+    "thumb": "assets/thumbs/avocado.png"
+  },
+  {
+    "id": "mexican-avocado",
+    "cat": "Fruits",
+    "name": "Mexican Avocado",
+    "price": 250,
+    "desc": "Mexican avocado (3D)",
+    "model": "assets/models/mexican avocado.glb",
+    "thumb": "assets/thumbs/mexican Avocado.png"
+  },
+  {
+    "id": "avalon-lemon",
+    "cat": "Fruits",
+    "name": "Lemon",
+    "price": 200,
+    "desc": "Avalon lemon (3D)",
+    "model": "assets/models/avalon lemon.glb",
+    "thumb": "assets/thumbs/avalon lemon.png"
+  },
+  {
+    "id": "passion-fruit",
+    "cat": "Fruits",
+    "name": "Passion Fruit",
+    "price": 180,
+    "desc": "Passion fruit (3D)",
+    "model": "assets/models/passion fruit.glb",
+    "thumb": "assets/thumbs/passion fruit.png"
+  },
+  {
+    "id": "persian-lime",
+    "cat": "Fruits",
+    "name": "Persian Lime",
+    "price": 150,
+    "desc": "Persian lime (3D)",
+    "model": "assets/models/persian lime.glb",
+    "thumb": "assets/thumbs/persian lime.png"
+  },
+  {
+    "id": "large-orange",
+    "cat": "Fruits",
+    "name": "Orange",
+    "price": 200,
+    "desc": "Large orange (3D)",
+    "model": "assets/models/large orange.glb",
+    "thumb": "assets/thumbs/Large_orange.png"
+  },
+  {
+    "id": "bread",
+    "cat": "Bakery",
+    "name": "Bread",
+    "price": 200,
+    "desc": "Bread loaf (3D)",
+    "model": "assets/models/bread.glb",
+    "thumb": "assets/thumbs/bread.png"
+  },
+  {
+    "id": "croissant",
+    "cat": "Bakery",
+    "name": "Croissant",
+    "price": 280,
+    "desc": "Croissant (3D)",
+    "model": "assets/models/croissant.glb",
+    "thumb": "assets/thumbs/croissant.png"
+  },
+  {
+    "id": "huel-bottle",
+    "cat": "Drinks",
+    "name": "Huel Bottle",
+    "price": 450,
+    "desc": "Bottle drink (3D)",
+    "model": "assets/models/huel bottle.glb",
+    "thumb": "assets/thumbs/huel bottle.png"
+  },
+  {
+    "id": "litchi-juice",
+    "cat": "Drinks",
+    "name": "Litchi Juice",
+    "price": 350,
+    "desc": "Litchi juice (3D)",
+    "model": "assets/models/litchi juice.glb",
+    "thumb": "assets/thumbs/litchi Juice.png"
+  },
+  {
+    "id": "roxie-rootbeer",
+    "cat": "Drinks",
+    "name": "Roxie Rootbeer",
+    "price": 300,
+    "desc": "Root beer (3D)",
+    "model": "assets/models/Roxie Rootbeer.glb",
+    "thumb": "assets/thumbs/Roxie Rootbeer.png"
+  },
+  {
+    "id": "stylized-cookies",
+    "cat": "Dessert",
+    "name": "Cookies",
+    "price": 300,
+    "desc": "Stylized cookies (3D)",
+    "model": "assets/models/stylized cookies.glb",
+    "thumb": "assets/thumbs/stylized cookies.png"
+  },
+  {
+    "id": "pasta-meatballs",
+    "cat": "Mains",
+    "name": "Pasta & Meatballs",
+    "price": 1300,
+    "desc": "Pasta with meatballs (3D)",
+    "model": "assets/models/pasta with meatballs and sausage.glb",
+    "thumb": "assets/thumbs/pasta with meatballs and sausage.png"
+  }
+{
+  "id": "burger-drink",
+  "cat": "Mains",
+  "name": "Burger + Drink",
+  "price": 900,
+  "desc": "Combo meal (3D)",
+  "model": "assets/models/burger-drink.glb",
+  "thumb": "assets/thumbs/burger.png"
+}
+]
