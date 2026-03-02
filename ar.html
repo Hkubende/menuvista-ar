@@ -5,110 +5,329 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MenuVista • AR Viewer</title>
 
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    body{margin:0;background:#0b0b10;color:#fff;font-family:system-ui}
-    model-viewer{width:100vw;height:100vh;background:#0b0b10}
-    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;z-index:5}
-    .chip{padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);font-weight:900}
+    :root { color-scheme: dark; }
+    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+    model-viewer{
+      width:100vw;height:100vh;
+      background:
+        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.16), transparent 60%),
+        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.20), transparent 55%),
+        #0b0b10;
+    }
+    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;z-index:10}
+    .chip{
+      padding:10px 12px;border-radius:14px;
+      background:rgba(0,0,0,.50);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      font-weight:900;font-size:13px;
+      cursor:pointer;user-select:none;
+    }
+    .chip.muted{cursor:default;opacity:.95}
+
     .panel{
       position:absolute;left:14px;right:14px;bottom:14px;
       background:rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.10);
       border-radius:18px;padding:14px;
-      display:flex;justify-content:space-between;align-items:center;
-      gap:12px;
+      display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
+      z-index:10;
     }
+    .title{font-weight:900;font-size:18px;margin:0 0 6px}
+    .meta{margin:0;opacity:.88;font-size:13px;line-height:1.35}
     .price{color:#FF7A2F;font-weight:900}
-    button{border:0;border-radius:12px;padding:10px 12px;font-weight:900;cursor:pointer}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    button{
+      border:0;border-radius:14px;padding:10px 12px;
+      font-weight:900;cursor:pointer;white-space:nowrap;
+    }
     .primary{background:#FF7A2F;color:#111}
-    .ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.14)}
+    .ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14)}
+    button[disabled]{opacity:.45;cursor:not-allowed}
+
+    /* Loading overlay */
+    .loader{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.25);
+      z-index:9;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .15s ease;
+    }
+    .loader.show{opacity:1}
+    .card{
+      width:min(520px, 92vw);
+      background:rgba(10,10,16,.85);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      backdrop-filter: blur(12px);
+      padding:14px;
+      display:flex;gap:12px;align-items:center;
+    }
+    .spin{
+      width:22px;height:22px;border-radius:999px;
+      border:3px solid rgba(255,255,255,.18);
+      border-top-color:#FF7A2F;
+      animation:rot .9s linear infinite;
+      flex:0 0 auto;
+    }
+    @keyframes rot{to{transform:rotate(360deg)}}
+    .small{opacity:.85;font-size:12.5px;line-height:1.35}
+    .err{color:#ffb3b3}
   </style>
 </head>
 
 <body>
-
-<div class="topbar">
-  <div class="chip" onclick="location.href='index.html'" style="cursor:pointer">← Menu</div>
-  <div class="chip" id="status">Loading…</div>
-</div>
-
-<model-viewer id="mv"
-  camera-controls
-  auto-rotate
-  shadow-intensity="1"
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  ar-placement="floor">
-</model-viewer>
-
-<div class="panel">
-  <div>
-    <div id="name" style="font-weight:900"></div>
-    <div><span class="price" id="price"></span></div>
+  <div class="topbar">
+    <div class="chip" onclick="location.href='index.html'">← Menu</div>
+    <div class="chip" onclick="location.href='dashboard.html'">Dashboard</div>
+    <div id="supportChip" class="chip muted">Loading…</div>
   </div>
-  <div style="display:flex;gap:10px">
-    <button class="ghost" id="prev">◀</button>
-    <button class="ghost" id="next">▶</button>
-    <button class="primary" id="arBtn">View in AR</button>
+
+  <model-viewer id="mv"
+    src=""
+    camera-controls
+    auto-rotate
+    rotation-per-second="20deg"
+    shadow-intensity="1"
+    environment-image="neutral"
+    exposure="1.0"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    ar-placement="floor">
+  </model-viewer>
+
+  <div class="loader" id="loader">
+    <div class="card">
+      <div class="spin"></div>
+      <div>
+        <div style="font-weight:900">Loading 3D model…</div>
+        <div class="small" id="loadHint">Preparing preview…</div>
+      </div>
+    </div>
   </div>
-</div>
 
-<script>
-let dishes = [];
-let index = 0;
+  <div class="panel">
+    <div style="max-width:60ch">
+      <p class="title" id="dishName">—</p>
+      <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
+      <p class="meta small" id="viewsText"></p>
+      <p class="meta small" id="statusText">Swipe left/right to change dishes. Tap “View in AR” to place on table.</p>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="btnPrev">◀</button>
+      <button class="ghost" id="btnNext">▶</button>
+      <button class="ghost" id="btnReset">Reset</button>
+      <button class="primary" id="btnAR">View in AR</button>
+    </div>
+  </div>
 
-async function loadDishes(){
-  const res = await fetch("data/dishes.json", {cache:"no-store"});
-  return await res.json();
-}
+  <script>
+    // ========= CONFIG =========
+    const DISHES_URL = "data/dishes.json";
 
-function getDishId(){
-  const p = new URLSearchParams(location.search);
-  return p.get("dish");
-}
+    // analytics keys
+    const viewsKey = (id) => `mv_views_${id}`;
+    const loadsKey = (id) => `mv_loads_${id}`;   // model successfully loaded
+    const arKey    = (id) => `mv_ar_${id}`;      // AR attempts
 
-function updateURL(){
-  const u = new URL(location.href);
-  u.searchParams.set("dish", dishes[index].id);
-  history.replaceState({}, "", u);
-}
+    // ========= ELEMENTS =========
+    const mv = document.getElementById("mv");
+    const loader = document.getElementById("loader");
+    const loadHint = document.getElementById("loadHint");
+    const supportChip = document.getElementById("supportChip");
 
-function showDish(){
-  const d = dishes[index];
-  document.getElementById("mv").src = d.model;
-  document.getElementById("name").textContent = d.name;
-  document.getElementById("price").textContent = "KSh " + d.price.toLocaleString("en-KE");
-  updateURL();
-}
+    const dishName = document.getElementById("dishName");
+    const dishPrice = document.getElementById("dishPrice");
+    const dishDesc = document.getElementById("dishDesc");
+    const viewsText = document.getElementById("viewsText");
+    const statusText = document.getElementById("statusText");
 
-document.getElementById("prev").onclick = ()=>{
-  index = (index-1+dishes.length)%dishes.length;
-  showDish();
-};
-document.getElementById("next").onclick = ()=>{
-  index = (index+1)%dishes.length;
-  showDish();
-};
-document.getElementById("arBtn").onclick = async ()=>{
-  try{ await document.getElementById("mv").activateAR(); }
-  catch(e){ alert("AR not supported on this phone."); }
-};
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
+    const btnReset = document.getElementById("btnReset");
+    const btnAR = document.getElementById("btnAR");
 
-(async function(){
-  dishes = await loadDishes();
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-  const id = getDishId();
-  index = dishes.findIndex(d=>d.id===id);
-  if(index<0) index=0;
+    // ========= STATE =========
+    let dishes = [];
+    let currentIndex = 0;
+    let preloadCache = new Set(); // model URLs we've preloaded
 
-  showDish();
-  document.getElementById("status").textContent="Ready";
-})();
-</script>
+    // ========= HELPERS =========
+    const formatKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
 
+    function bump(key){
+      const v = parseInt(localStorage.getItem(key) || "0", 10) + 1;
+      localStorage.setItem(key, String(v));
+      return v;
+    }
+    function getCount(key){
+      return parseInt(localStorage.getItem(key) || "0", 10) || 0;
+    }
+
+    function setLoader(show, msg){
+      loader.classList.toggle("show", !!show);
+      if(msg) loadHint.textContent = msg;
+    }
+
+    function getDishIdFromURL(){
+      const p = new URLSearchParams(location.search);
+      return p.get("dish");
+    }
+    function updateURL(){
+      const id = dishes[currentIndex]?.id;
+      if(!id) return;
+      const u = new URL(location.href);
+      u.searchParams.set("dish", id);
+      history.replaceState({}, "", u.toString());
+    }
+
+    async function loadDishes(){
+      const res = await fetch(DISHES_URL, { cache: "no-store" });
+      if(!res.ok) throw new Error("Failed to load data/dishes.json");
+      const data = await res.json();
+      if(!Array.isArray(data) || !data.length) throw new Error("dishes.json must be a non-empty array");
+      return data;
+    }
+
+    // Preload: warms up fetch + caches for faster model swap (best-effort)
+    function preloadModel(url){
+      if(!url || preloadCache.has(url)) return;
+      preloadCache.add(url);
+      // Best-effort fetch; ignore failures
+      fetch(url, { cache: "force-cache" }).catch(()=>{});
+    }
+
+    function preloadNeighbors(){
+      const prev = dishes[(currentIndex - 1 + dishes.length) % dishes.length];
+      const next = dishes[(currentIndex + 1) % dishes.length];
+      preloadModel(prev?.model);
+      preloadModel(next?.model);
+    }
+
+    function renderCounts(id){
+      const views = getCount(viewsKey(id));
+      const loads = getCount(loadsKey(id));
+      const arTry = getCount(arKey(id));
+      viewsText.textContent = `${views} view${views===1?"":"s"} • ${loads} model load${loads===1?"":"s"} • ${arTry} AR attempt${arTry===1?"":"s"} (this browser)`;
+    }
+
+    function setSupportChip(text){ supportChip.textContent = text; }
+
+    async function detectARSupport(){
+      let webxrAR = false;
+      if (navigator.xr && navigator.xr.isSessionSupported) {
+        try { webxrAR = await navigator.xr.isSessionSupported("immersive-ar"); } catch(_) {}
+      }
+      const mvAR = !!mv.canActivateAR;
+      if (webxrAR) { btnAR.disabled = false; setSupportChip("AR supported (WebXR)"); return; }
+      if (isIOS)   { btnAR.disabled = !mvAR; setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)"); return; }
+      if (mvAR)    { btnAR.disabled = false; setSupportChip("AR available (Android)"); return; }
+      btnAR.disabled = true; setSupportChip("AR not supported");
+    }
+
+    function loadCurrentDish(){
+      const d = dishes[currentIndex];
+      if(!d) return;
+
+      updateURL();
+
+      dishName.textContent = d.name || d.id;
+      dishPrice.textContent = formatKsh(d.price || 0);
+      dishDesc.textContent = "— " + (d.desc || "");
+      bump(viewsKey(d.id));
+      renderCounts(d.id);
+
+      setLoader(true, "Downloading model…");
+      mv.src = d.model;
+
+      // Preload neighbors for faster swipes
+      preloadNeighbors();
+    }
+
+    function prevDish(){ currentIndex = (currentIndex - 1 + dishes.length) % dishes.length; loadCurrentDish(); }
+    function nextDish(){ currentIndex = (currentIndex + 1) % dishes.length; loadCurrentDish(); }
+
+    btnPrev.onclick = prevDish;
+    btnNext.onclick = nextDish;
+
+    btnReset.onclick = () => {
+      mv.cameraOrbit = "0deg 75deg 2.5m";
+      mv.fieldOfView = "30deg";
+    };
+
+    btnAR.onclick = async () => {
+      const d = dishes[currentIndex];
+      bump(arKey(d.id));
+      renderCounts(d.id);
+      try { await mv.activateAR(); }
+      catch(e){
+        statusText.textContent = "AR could not start on this device. Use the 3D preview (rotate/zoom) instead.";
+        console.error(e);
+      }
+    };
+
+    // Events from model-viewer
+    mv.addEventListener("load", () => {
+      setLoader(false);
+      const d = dishes[currentIndex];
+      bump(loadsKey(d.id));
+      renderCounts(d.id);
+      statusText.textContent = "Ready. Swipe left/right to change dishes. Tap “View in AR” to place on table.";
+    });
+
+    mv.addEventListener("error", () => {
+      setLoader(false);
+      const d = dishes[currentIndex];
+      statusText.innerHTML = `<span class="err">Model failed to load.</span> Check filename/path (GitHub is case-sensitive).`;
+      btnAR.disabled = true;
+      setSupportChip("Model load error");
+    });
+
+    // Swipe gestures
+    let startX=0, startY=0, isDown=false;
+    const SWIPE_MIN=50, SWIPE_MAX_Y=80;
+
+    mv.addEventListener("touchstart", (e)=>{
+      if(!e.touches || e.touches.length!==1) return;
+      isDown=true; startX=e.touches[0].clientX; startY=e.touches[0].clientY;
+    }, {passive:true});
+
+    mv.addEventListener("touchend", (e)=>{
+      if(!isDown) return; isDown=false;
+      const t=e.changedTouches && e.changedTouches[0]; if(!t) return;
+      const dx=t.clientX-startX, dy=t.clientY-startY;
+      if(Math.abs(dy)>SWIPE_MAX_Y) return;
+      if(dx>SWIPE_MIN) prevDish();
+      else if(dx<-SWIPE_MIN) nextDish();
+    }, {passive:true});
+
+    // INIT
+    (async function init(){
+      try{
+        setLoader(true, "Loading menu data…");
+        dishes = await loadDishes();
+
+        const wanted = getDishIdFromURL();
+        const idx = dishes.findIndex(x => x.id === wanted);
+        currentIndex = (idx >= 0) ? idx : 0;
+
+        loadCurrentDish();
+        setTimeout(detectARSupport, 400);
+      }catch(e){
+        setLoader(false);
+        setSupportChip("Error");
+        statusText.innerHTML = `<span class="err">${(e && e.message) ? e.message : e}</span>`;
+        console.error(e);
+      }
+    })();
+  </script>
 </body>
 </html>
