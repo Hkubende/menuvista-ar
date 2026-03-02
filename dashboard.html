@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MenuVista • Dashboard</title>
+
+<style>
+body{margin:0;background:#0b0b10;color:#fff;font-family:system-ui}
+.wrap{max-width:1100px;margin:auto;padding:20px}
+h1{margin:0 0 16px}
+.card{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:12px;
+  background:rgba(255,255,255,.05);
+}
+.row{display:flex;justify-content:space-between}
+.views{color:#FF7A2F;font-weight:900}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<h1>MenuVista Dashboard</h1>
+<div id="list">Loading...</div>
+</div>
+
+<script>
+async function load(){
+  const res = await fetch("data/dishes.json",{cache:"no-store"});
+  const dishes = await res.json();
+
+  const list = document.getElementById("list");
+  list.innerHTML="";
+
+  dishes.forEach(d=>{
+    const views = localStorage.getItem("mv_views_"+d.id)||0;
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `
+      <div class="row">
+        <b>${d.name}</b>
+        <span class="views">${views} views</span>
+      </div>
+      <div style="opacity:.8">${d.cat}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+load();
+</script>
+</body>
+</html>
