@@ -9,22 +9,23 @@
 
   <style>
     :root { color-scheme: dark; }
-    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+    body { margin:0; font-family: system-ui, Arial, sans-serif; background:#0b0b10; color:#fff; }
     model-viewer{
-      width:100vw;height:100vh;
+      width:100vw; height:100vh;
       background:
-        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.16), transparent 60%),
-        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.20), transparent 55%),
+        radial-gradient(1200px 700px at 50% 70%, rgba(255,122,47,.18), transparent 60%),
+        radial-gradient(900px 500px at 40% 40%, rgba(58,63,159,.25), transparent 55%),
         #0b0b10;
     }
-    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;z-index:10}
+    .topbar{position:absolute;top:14px;left:14px;right:14px;display:flex;gap:10px;justify-content:space-between;z-index:15}
     .chip{
       padding:10px 12px;border-radius:14px;
-      background:rgba(0,0,0,.50);
+      background:rgba(0,0,0,.45);
       border:1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(10px);
+      backdrop-filter:blur(10px);
       font-weight:900;font-size:13px;
-      cursor:pointer;user-select:none;
+      user-select:none;
+      cursor:pointer;
     }
     .chip.muted{cursor:default;opacity:.95}
 
@@ -32,34 +33,30 @@
       position:absolute;left:14px;right:14px;bottom:14px;
       background:rgba(0,0,0,.55);
       border:1px solid rgba(255,255,255,.10);
+      backdrop-filter:blur(12px);
       border-radius:18px;padding:14px;
-      display:flex;justify-content:space-between;align-items:flex-end;gap:12px;
-      z-index:10;
+      display:flex;gap:12px;align-items:flex-end;justify-content:space-between;
+      z-index:15
     }
-    .title{font-weight:900;font-size:18px;margin:0 0 6px}
-    .meta{margin:0;opacity:.88;font-size:13px;line-height:1.35}
-    .price{color:#FF7A2F;font-weight:900}
+    .title{font-size:18px;font-weight:900;margin:0 0 6px}
+    .meta{margin:0;opacity:.9;font-size:13px;line-height:1.35}
+    .price{font-weight:900;color:#FF7A2F}
     .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    button{
-      border:0;border-radius:14px;padding:10px 12px;
-      font-weight:900;cursor:pointer;white-space:nowrap;
-    }
+    button{border:0;border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;white-space:nowrap}
     .primary{background:#FF7A2F;color:#111}
     .ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.14)}
+    .wa{background:#25D366;color:#111}
     button[disabled]{opacity:.45;cursor:not-allowed}
+    .hint{opacity:.8;font-size:12px;margin-top:6px}
 
-    /* Loading overlay */
+    /* Loader overlay */
     .loader{
-      position:absolute;inset:0;
-      display:flex;align-items:center;justify-content:center;
-      background:rgba(0,0,0,.25);
-      z-index:9;
-      pointer-events:none;
-      opacity:0;
-      transition:opacity .15s ease;
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.18);z-index:12;pointer-events:none;
+      opacity:0;transition:opacity .15s ease;
     }
     .loader.show{opacity:1}
-    .card{
+    .loaderCard{
       width:min(520px, 92vw);
       background:rgba(10,10,16,.85);
       border:1px solid rgba(255,255,255,.12);
@@ -76,8 +73,37 @@
       flex:0 0 auto;
     }
     @keyframes rot{to{transform:rotate(360deg)}}
-    .small{opacity:.85;font-size:12.5px;line-height:1.35}
+    .small{opacity:.85;font-size:12px;line-height:1.35}
     .err{color:#ffb3b3}
+
+    /* Checkout modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:80}
+    .overlay.show{display:block}
+    .modal{
+      position:fixed;left:50%;top:50%;
+      transform:translate(-50%,-50%);
+      width:min(540px, 92vw);
+      background:rgba(10,10,16,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      backdrop-filter: blur(12px);
+      z-index:90;
+      display:none;
+    }
+    .modal.show{display:block}
+    .modalHeader{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.12)}
+    .modalTitle{font-weight:900}
+    .modalBody{padding:14px}
+    .kv{display:flex;justify-content:space-between;gap:10px;margin:8px 0}
+    .box{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      padding:10px 10px;
+      background:rgba(0,0,0,.25);
+      margin-top:10px;
+    }
+    .code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    .ctaRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
   </style>
 </head>
 
@@ -85,11 +111,13 @@
   <div class="topbar">
     <div class="chip" onclick="location.href='index.html'">← Menu</div>
     <div class="chip" onclick="location.href='dashboard.html'">Dashboard</div>
-    <div id="supportChip" class="chip muted">Loading…</div>
+    <div id="supportChip" class="chip muted">Checking…</div>
   </div>
 
   <model-viewer id="mv"
     src=""
+    loading="eager"
+    reveal="auto"
     camera-controls
     auto-rotate
     rotation-per-second="20deg"
@@ -102,66 +130,152 @@
   </model-viewer>
 
   <div class="loader" id="loader">
-    <div class="card">
+    <div class="loaderCard">
       <div class="spin"></div>
       <div>
-        <div style="font-weight:900">Loading 3D model…</div>
-        <div class="small" id="loadHint">Preparing preview…</div>
+        <div style="font-weight:900" id="loaderTitle">Loading 3D model…</div>
+        <div class="small" id="loaderHint">Please wait…</div>
       </div>
     </div>
   </div>
 
   <div class="panel">
-    <div style="max-width:60ch">
-      <p class="title" id="dishName">—</p>
+    <div style="max-width:58ch">
+      <p class="title" id="dishName">Loading…</p>
       <p class="meta"><span class="price" id="dishPrice">—</span> <span id="dishDesc"></span></p>
-      <p class="meta small" id="viewsText"></p>
-      <p class="meta small" id="statusText">Swipe left/right to change dishes. Tap “View in AR” to place on table.</p>
+      <p class="meta" id="statusText">Swipe left/right to change dishes. Tap “View in AR” to place on table.</p>
+      <div class="hint" id="viewsText"></div>
     </div>
     <div class="actions">
       <button class="ghost" id="btnPrev">◀</button>
       <button class="ghost" id="btnNext">▶</button>
       <button class="ghost" id="btnReset">Reset</button>
+      <button class="ghost" id="btnCheckout">Cart Checkout</button>
+      <button class="wa" id="btnWA">WhatsApp Order</button>
       <button class="primary" id="btnAR">View in AR</button>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="overlay" id="ov"></div>
+  <div class="modal" id="modal">
+    <div class="modalHeader">
+      <div class="modalTitle">Checkout • M-Pesa</div>
+      <div class="chip" id="closeModal" style="cursor:pointer">✕</div>
+    </div>
+    <div class="modalBody">
+      <div id="orderLines"></div>
+
+      <div class="box">
+        <div class="kv"><div class="small">Total to pay</div><div class="price" id="payTotal">KSh 0</div></div>
+        <div class="kv"><div class="small">Reference</div><div class="code" id="payRef">MV-0000</div></div>
+      </div>
+
+      <div class="box">
+        <div style="font-weight:900;margin-bottom:6px">Pay via M-Pesa (Manual)</div>
+        <div class="small">
+          1) M-Pesa → <b>Lipa na M-Pesa</b><br/>
+          2) Choose <b>Buy Goods</b> (Till)<br/>
+          3) Enter Till Number, amount, and reference below<br/>
+          4) Tap <b>Send Confirmation</b> (WhatsApp)
+        </div>
+
+        <div class="kv" style="margin-top:10px">
+          <div class="small">Method</div>
+          <div class="code" id="methodOut">TILL</div>
+        </div>
+        <div class="kv">
+          <div class="small">Till Number</div>
+          <div class="code" id="bizNo">8711138</div>
+        </div>
+        <div class="kv">
+          <div class="small">Reference</div>
+          <div class="code" id="refOut">MV-0000</div>
+        </div>
+        <div class="kv">
+          <div class="small">Amount</div>
+          <div class="code" id="amtOut">KSh 0</div>
+        </div>
+
+        <button class="ghost" id="copyAll">Copy payment details</button>
+      </div>
+
+      <div class="ctaRow">
+        <button class="wa" id="sendConfirm" style="flex:1">Send Confirmation on WhatsApp</button>
+        <button class="primary" id="placeOrder" style="flex:1">Place Order (WhatsApp)</button>
+      </div>
+
+      <div class="small" style="margin-top:10px;opacity:.75">
+        STK Push will be enabled after backend deployment (Render). For now, manual M-Pesa + WhatsApp.
+      </div>
     </div>
   </div>
 
   <script>
     // ========= CONFIG =========
     const DISHES_URL = "data/dishes.json";
+    const CART_KEY = "mv_cart_v1";
+
+    // WhatsApp business number (no +)
+    const WHATSAPP_NUMBER = "254745482764";
+
+    // M-Pesa manual details
+    const MPESA_METHOD = "TILL";
+    const MPESA_BIZ_NO = "8711138";
 
     // analytics keys
     const viewsKey = (id) => `mv_views_${id}`;
-    const loadsKey = (id) => `mv_loads_${id}`;   // model successfully loaded
-    const arKey    = (id) => `mv_ar_${id}`;      // AR attempts
+    const loadsKey = (id) => `mv_loads_${id}`;
+    const arKey    = (id) => `mv_ar_${id}`;
 
     // ========= ELEMENTS =========
-    const mv = document.getElementById("mv");
+    const mv = document.getElementById('mv');
     const loader = document.getElementById("loader");
-    const loadHint = document.getElementById("loadHint");
-    const supportChip = document.getElementById("supportChip");
+    const loaderHint = document.getElementById("loaderHint");
+    const supportChip = document.getElementById('supportChip');
 
-    const dishName = document.getElementById("dishName");
-    const dishPrice = document.getElementById("dishPrice");
-    const dishDesc = document.getElementById("dishDesc");
-    const viewsText = document.getElementById("viewsText");
-    const statusText = document.getElementById("statusText");
+    const btnAR = document.getElementById('btnAR');
+    const btnReset = document.getElementById('btnReset');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnWA = document.getElementById('btnWA');
+    const btnCheckout = document.getElementById('btnCheckout');
 
-    const btnPrev = document.getElementById("btnPrev");
-    const btnNext = document.getElementById("btnNext");
-    const btnReset = document.getElementById("btnReset");
-    const btnAR = document.getElementById("btnAR");
+    const dishName = document.getElementById('dishName');
+    const dishPrice = document.getElementById('dishPrice');
+    const dishDesc = document.getElementById('dishDesc');
+    const viewsText = document.getElementById('viewsText');
+    const statusText = document.getElementById('statusText');
+
+    // modal
+    const ov = document.getElementById("ov");
+    const modal = document.getElementById("modal");
+    const closeModal = document.getElementById("closeModal");
+    const orderLines = document.getElementById("orderLines");
+    const payTotal = document.getElementById("payTotal");
+    const payRef = document.getElementById("payRef");
+    const methodOut = document.getElementById("methodOut");
+    const bizNo = document.getElementById("bizNo");
+    const refOut = document.getElementById("refOut");
+    const amtOut = document.getElementById("amtOut");
+    const copyAll = document.getElementById("copyAll");
+    const sendConfirm = document.getElementById("sendConfirm");
+    const placeOrder = document.getElementById("placeOrder");
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     // ========= STATE =========
     let dishes = [];
     let currentIndex = 0;
-    let preloadCache = new Set(); // model URLs we've preloaded
 
     // ========= HELPERS =========
     const formatKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
+
+    function setLoader(show, msg){
+      loader.classList.toggle("show", !!show);
+      if(msg) loaderHint.textContent = msg;
+    }
 
     function bump(key){
       const v = parseInt(localStorage.getItem(key) || "0", 10) + 1;
@@ -172,15 +286,21 @@
       return parseInt(localStorage.getItem(key) || "0", 10) || 0;
     }
 
-    function setLoader(show, msg){
-      loader.classList.toggle("show", !!show);
-      if(msg) loadHint.textContent = msg;
+    async function loadDishes(){
+      const res = await fetch(DISHES_URL, { cache:"no-store" });
+      if(!res.ok) throw new Error(`Failed to load ${DISHES_URL} (HTTP ${res.status})`);
+      const data = await res.json();
+      if(!Array.isArray(data) || !data.length) throw new Error("dishes.json must be a non-empty array");
+      return data;
     }
+
+    function setSupportChip(msg){ supportChip.textContent = msg; }
 
     function getDishIdFromURL(){
       const p = new URLSearchParams(location.search);
       return p.get("dish");
     }
+
     function updateURL(){
       const id = dishes[currentIndex]?.id;
       if(!id) return;
@@ -189,48 +309,11 @@
       history.replaceState({}, "", u.toString());
     }
 
-    async function loadDishes(){
-      const res = await fetch(DISHES_URL, { cache: "no-store" });
-      if(!res.ok) throw new Error("Failed to load data/dishes.json");
-      const data = await res.json();
-      if(!Array.isArray(data) || !data.length) throw new Error("dishes.json must be a non-empty array");
-      return data;
-    }
-
-    // Preload: warms up fetch + caches for faster model swap (best-effort)
-    function preloadModel(url){
-      if(!url || preloadCache.has(url)) return;
-      preloadCache.add(url);
-      // Best-effort fetch; ignore failures
-      fetch(url, { cache: "force-cache" }).catch(()=>{});
-    }
-
-    function preloadNeighbors(){
-      const prev = dishes[(currentIndex - 1 + dishes.length) % dishes.length];
-      const next = dishes[(currentIndex + 1) % dishes.length];
-      preloadModel(prev?.model);
-      preloadModel(next?.model);
-    }
-
     function renderCounts(id){
       const views = getCount(viewsKey(id));
       const loads = getCount(loadsKey(id));
       const arTry = getCount(arKey(id));
-      viewsText.textContent = `${views} view${views===1?"":"s"} • ${loads} model load${loads===1?"":"s"} • ${arTry} AR attempt${arTry===1?"":"s"} (this browser)`;
-    }
-
-    function setSupportChip(text){ supportChip.textContent = text; }
-
-    async function detectARSupport(){
-      let webxrAR = false;
-      if (navigator.xr && navigator.xr.isSessionSupported) {
-        try { webxrAR = await navigator.xr.isSessionSupported("immersive-ar"); } catch(_) {}
-      }
-      const mvAR = !!mv.canActivateAR;
-      if (webxrAR) { btnAR.disabled = false; setSupportChip("AR supported (WebXR)"); return; }
-      if (isIOS)   { btnAR.disabled = !mvAR; setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)"); return; }
-      if (mvAR)    { btnAR.disabled = false; setSupportChip("AR available (Android)"); return; }
-      btnAR.disabled = true; setSupportChip("AR not supported");
+      viewsText.textContent = `${views} view${views===1?"":"s"} • ${loads} load${loads===1?"":"s"} • ${arTry} AR attempt${arTry===1?"":"s"} (this browser)`;
     }
 
     function loadCurrentDish(){
@@ -242,40 +325,47 @@
       dishName.textContent = d.name || d.id;
       dishPrice.textContent = formatKsh(d.price || 0);
       dishDesc.textContent = "— " + (d.desc || "");
+
       bump(viewsKey(d.id));
       renderCounts(d.id);
 
       setLoader(true, "Downloading model…");
       mv.src = d.model;
 
-      // Preload neighbors for faster swipes
-      preloadNeighbors();
+      const msg = `Hello, I want to order: ${d.name} (${formatKsh(d.price)}).`;
+      btnWA.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
     }
 
     function prevDish(){ currentIndex = (currentIndex - 1 + dishes.length) % dishes.length; loadCurrentDish(); }
     function nextDish(){ currentIndex = (currentIndex + 1) % dishes.length; loadCurrentDish(); }
 
-    btnPrev.onclick = prevDish;
-    btnNext.onclick = nextDish;
+    btnPrev.addEventListener("click", prevDish);
+    btnNext.addEventListener("click", nextDish);
 
-    btnReset.onclick = () => {
+    btnReset.addEventListener('click', () => {
       mv.cameraOrbit = "0deg 75deg 2.5m";
       mv.fieldOfView = "30deg";
-    };
+    });
 
-    btnAR.onclick = async () => {
+    btnAR.addEventListener('click', async () => {
       const d = dishes[currentIndex];
       bump(arKey(d.id));
       renderCounts(d.id);
+
       try { await mv.activateAR(); }
       catch(e){
-        statusText.textContent = "AR could not start on this device. Use the 3D preview (rotate/zoom) instead.";
+        statusText.textContent = "AR could not start on this device. Using 3D preview instead.";
         console.error(e);
       }
-    };
+    });
 
-    // Events from model-viewer
-    mv.addEventListener("load", () => {
+    // Progress + load events
+    mv.addEventListener("progress", (e) => {
+      const pct = Math.round((e.detail.totalProgress || 0) * 100);
+      setLoader(true, `Loading model… ${pct}%`);
+    });
+
+    mv.addEventListener('load', () => {
       setLoader(false);
       const d = dishes[currentIndex];
       bump(loadsKey(d.id));
@@ -283,15 +373,26 @@
       statusText.textContent = "Ready. Swipe left/right to change dishes. Tap “View in AR” to place on table.";
     });
 
-    mv.addEventListener("error", () => {
+    mv.addEventListener('error', () => {
       setLoader(false);
-      const d = dishes[currentIndex];
       statusText.innerHTML = `<span class="err">Model failed to load.</span> Check filename/path (GitHub is case-sensitive).`;
       btnAR.disabled = true;
       setSupportChip("Model load error");
     });
 
-    // Swipe gestures
+    async function detectARSupport(){
+      let webxrAR = false;
+      if (navigator.xr && navigator.xr.isSessionSupported) {
+        try { webxrAR = await navigator.xr.isSessionSupported('immersive-ar'); } catch(_) {}
+      }
+      const mvAR = !!mv.canActivateAR;
+      if (webxrAR) { btnAR.disabled = false; setSupportChip("AR supported (WebXR)"); return; }
+      if (isIOS)   { btnAR.disabled = !mvAR; setSupportChip(btnAR.disabled ? "AR limited on iOS" : "AR supported (iOS)"); return; }
+      if (mvAR)    { btnAR.disabled = false; setSupportChip("AR available (Android)"); return; }
+      btnAR.disabled = true; setSupportChip("AR not supported");
+    }
+
+    // Swipe on model-viewer
     let startX=0, startY=0, isDown=false;
     const SWIPE_MIN=50, SWIPE_MAX_Y=80;
 
@@ -309,6 +410,127 @@
       else if(dx<-SWIPE_MIN) nextDish();
     }, {passive:true});
 
+    // ========= CART CHECKOUT (from localStorage cart) =========
+    function loadCart(){
+      try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); }
+      catch { return {}; }
+    }
+    function cartCount(cart){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+    function cartTotal(cart){
+      let total=0;
+      for(const [id, qty] of Object.entries(cart)){
+        const d = dishes.find(x=>x.id===id);
+        if(d) total += (d.price || 0) * qty;
+      }
+      return total;
+    }
+    function makeRef(){
+      const n = Math.floor(1000 + Math.random()*9000);
+      return `MV-${n}`;
+    }
+    function openModal(){
+      ov.classList.add("show");
+      modal.classList.add("show");
+    }
+    function closeModalFn(){
+      ov.classList.remove("show");
+      modal.classList.remove("show");
+    }
+    ov.onclick = closeModalFn;
+    closeModal.onclick = closeModalFn;
+
+    function renderCheckout(cart, ref){
+      const total = cartTotal(cart);
+
+      methodOut.textContent = MPESA_METHOD;
+      bizNo.textContent = MPESA_BIZ_NO;
+      payTotal.textContent = formatKsh(total);
+      payRef.textContent = ref;
+      refOut.textContent = ref;
+      amtOut.textContent = formatKsh(total);
+
+      let lines = [];
+      for(const [id, qty] of Object.entries(cart)){
+        const d = dishes.find(x=>x.id===id);
+        if(!d) continue;
+        lines.push(`${qty} x ${d.name} = ${formatKsh((d.price || 0) * qty)}`);
+      }
+
+      orderLines.innerHTML = `
+        <div class="box">
+          <div style="font-weight:900;margin-bottom:6px">Order Summary</div>
+          <div class="small">${lines.join("<br/>")}</div>
+        </div>
+      `;
+
+      const paymentText =
+`MenuVista Order Payment
+Method: ${MPESA_METHOD}
+Till: ${MPESA_BIZ_NO}
+Reference: ${ref}
+Amount: ${total}
+
+Order:
+${lines.join("\n")}
+Total: ${total}`;
+
+      copyAll.onclick = async () => {
+        try { await navigator.clipboard.writeText(paymentText); alert("Copied payment details."); }
+        catch { alert("Copy failed. Please copy manually."); }
+      };
+
+      const orderMsg =
+`Hello, I want to place an order:
+
+${lines.join("\n")}
+TOTAL: ${formatKsh(total)}
+
+Payment method: M-Pesa (${MPESA_METHOD})
+Reference: ${ref}`;
+
+      const confirmMsg =
+`Hello, I have paid via M-Pesa.
+
+Reference: ${ref}
+Amount: ${formatKsh(total)}
+
+Please confirm and process my order.`;
+
+      placeOrder.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(orderMsg)}`, "_blank");
+      sendConfirm.onclick = () => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(confirmMsg)}`, "_blank");
+    }
+
+    function startCheckoutFromURL(){
+      const p = new URLSearchParams(location.search);
+      const isCheckout = p.get("checkout") === "1";
+      if(!isCheckout) return;
+
+      let cart = {};
+      const encoded = p.get("cart");
+      if(encoded){
+        try { cart = JSON.parse(atob(decodeURIComponent(encoded))); } catch {}
+      } else {
+        cart = loadCart();
+      }
+
+      if(cartCount(cart) === 0){
+        alert("Cart is empty.");
+        return;
+      }
+
+      const ref = makeRef();
+      renderCheckout(cart, ref);
+      openModal();
+    }
+
+    btnCheckout.onclick = () => {
+      const cart = loadCart();
+      if(cartCount(cart) === 0){ alert("Cart is empty."); return; }
+      const ref = makeRef();
+      renderCheckout(cart, ref);
+      openModal();
+    };
+
     // INIT
     (async function init(){
       try{
@@ -320,11 +542,12 @@
         currentIndex = (idx >= 0) ? idx : 0;
 
         loadCurrentDish();
-        setTimeout(detectARSupport, 400);
+        setTimeout(detectARSupport, 500);
+        startCheckoutFromURL();
       }catch(e){
         setLoader(false);
         setSupportChip("Error");
-        statusText.innerHTML = `<span class="err">${(e && e.message) ? e.message : e}</span>`;
+        statusText.innerHTML = `<span class="err">${e.message || String(e)}</span>`;
         console.error(e);
       }
     })();
