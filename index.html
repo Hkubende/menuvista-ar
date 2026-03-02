@@ -36,9 +36,7 @@
     .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
     .price{font-weight:900;color:#FF7A2F}
     .btn{padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:800;font-size:12px;cursor:pointer;user-select:none}
-    .views{opacity:.7;font-size:12px}
 
-    /* Cart button (top right) */
     .cartBtn{
       display:flex;gap:8px;align-items:center;cursor:pointer;
       padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);
@@ -52,7 +50,6 @@
       padding:0 6px;
     }
 
-    /* Cart drawer */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:50}
     .overlay.show{display:block}
     .drawer{
@@ -106,6 +103,7 @@
       border-radius:14px;padding:10px 12px;font-weight:900;cursor:pointer;
     }
     .muted{opacity:.75;font-size:12px;margin-top:10px;line-height:1.35}
+    .err{margin-top:10px;opacity:.9;font-size:13px;color:#ffb3b3}
   </style>
 </head>
 <body>
@@ -128,9 +126,9 @@
     </div>
 
     <div id="menu"></div>
+    <div id="err" class="err"></div>
   </div>
 
-  <!-- Cart Drawer -->
   <div class="overlay" id="overlay"></div>
   <div class="drawer" id="drawer">
     <div class="drawerHeader">
@@ -154,80 +152,27 @@
   </div>
 
   <script>
-    // =========================
-    // CONFIG
-    // =========================
     const CART_KEY = "mv_cart_v1";
+    let dishes = [];
 
-    // ✅ UPDATED to match YOUR real files (spaces + caps)
-    // NOTE: Filenames must match exactly (case-sensitive on GitHub Pages).
-    const dishes = [
-      { id:"Chicken Burger",   cat:"Mains",   name:"Chicken Burger", price:900,  desc:"Chicken Burger (3D)",               model:"models/Chicken Burger.glb",                 thumb:"Images/Chicken Burger.png" },
-      { id:"CheeseBurger",   cat:"Mains",   name:"Cheese Burger",  price:850,  desc:"Cheesy burger (3D)",           model:"models/CheeseBurger.glb",                 thumb:"Images/CheeseBurger.png" },
-      { id:"chicken",        cat:"Mains",   name:"Chicken",        price:900,  desc:"Chicken dish (3D)",            model:"models/chicken.glb",                      thumb:"Images/chicken.png" },
-      { id:"fries",          cat:"Sides",   name:"Fries",          price:350,  desc:"Crispy fries (3D)",            model:"models/fries.glb",                        thumb:"Images/fries.png" },
-      { id:"sushi",          cat:"Mains",   name:"Sushi",          price:1500, desc:"Sushi (3D)",                   model:"models/sushi.glb",                        thumb:"Images/sushi.png" },
-      { id:"lasagna",        cat:"Mains",   name:"Lasagna",        price:1200, desc:"Lasagna (3D)",                 model:"models/lasagna.glb",                      thumb:"Images/lasagna.png" },
-      { id:"Roasted chicken", cat:"Mains",   name:"Roasted chicken",        price:2500, desc:"Roasted chicken (3D)",                 model:"models/Roasted chicken.glb",                      thumb:"Images/Roasted chicken.png" },
-
-
-      { id:"avalon lemon",   cat:"Fruits",  name:"Lemon",          price:200,  desc:"Avalon lemon (3D)",            model:"models/avalon lemon.glb",                 thumb:"Images/avalon lemon.png" },
-      { id:"avocado",        cat:"Fruits",  name:"Avocado",        price:250,  desc:"Fresh avocado (3D)",           model:"models/avocado.glb",                      thumb:"Images/avocado.png" },
-      { id:"mexican avocado",cat:"Fruits",  name:"Mexican Avocado",price:250,  desc:"Mexican avocado (3D)",         model:"models/mexican avocado.glb",               thumb:"Images/mexican Avocado.png" },
-      { id:"passion fruit",  cat:"Fruits",  name:"Passion Fruit",  price:180,  desc:"Passion fruit (3D)",           model:"models/passion fruit.glb",                thumb:"Images/passion fruit.png" },
-      { id:"persian lime",   cat:"Fruits",  name:"Persian Lime",   price:150,  desc:"Persian lime (3D)",            model:"models/persian lime.glb",                 thumb:"Images/persian lime.png" },
-      { id:"large orange",   cat:"Fruits",  name:"Orange",         price:200,  desc:"Large orange (3D)",            model:"models/large orange.glb",                 thumb:"Images/Large_orange.png" },
-
-      { id:"bread",          cat:"Bakery",  name:"Bread",          price:200,  desc:"Bread loaf (3D)",              model:"models/bread.glb",                        thumb:"Images/bread.png" },
-      { id:"croissant",      cat:"Bakery",  name:"Croissant",      price:280,  desc:"Croissant (3D)",               model:"models/croissant.glb",                    thumb:"Images/croissant.png" },
-
-      { id:"huel bottle",    cat:"Drinks",  name:"Huel Bottle",    price:450,  desc:"Bottle drink (3D)",            model:"models/huel bottle.glb",                  thumb:"Images/huel bottle.png" },
-      { id:"litchi juice",   cat:"Drinks",  name:"Litchi Juice",   price:350,  desc:"Litchi juice (3D)",            model:"models/litchi juice.glb",                 thumb:"Images/litchi Juice.png" },
-      { id:"Roxie Rootbeer", cat:"Drinks",  name:"Root Beer",      price:300,  desc:"Roxie Rootbeer (3D)",          model:"models/Roxie Rootbeer.glb",               thumb:"Images/Roxie Rootbeer.png" },
-
-      { id:"poly burge",     cat:"Mains",   name:"Poly Burger",    price:850,  desc:"Burger variant (3D)",          model:"models/poly burge.glb",                   thumb:"Images/burger.png" },
-
-      { id:"stylized cookies", cat:"Dessert", name:"Cookies",      price:300,  desc:"Stylized cookies (3D)",        model:"models/stylized cookies.glb",             thumb:"Images/stylized cookies.png" },
-
-      { id:"pasta with meatballs and sausage", cat:"Mains", name:"Pasta & Meatballs", price:1300, desc:"Pasta with meatballs (3D)",
-        model:"models/pasta with meatballs and sausage.glb", thumb:"Images/pasta with meatballs and sausage.png" }
-    ];
-
-    const cats = [...new Set(dishes.map(d => d.cat))];
     const menuEl = document.getElementById("menu");
     const q = document.getElementById("q");
+    const errEl = document.getElementById("err");
 
-    // =========================
-    // CART STORAGE
-    // =========================
-    function loadCart(){
-      try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); }
-      catch { return {}; }
-    }
-    function saveCart(cart){
-      localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      updateCartUI();
-    }
-    function addToCart(id){
-      const cart = loadCart();
-      cart[id] = (cart[id] || 0) + 1;
-      saveCart(cart);
-      openCart();
-    }
-    function setQty(id, qty){
-      const cart = loadCart();
-      if(qty <= 0) delete cart[id];
-      else cart[id] = qty;
-      saveCart(cart);
-    }
-    function clearCart(){
-      localStorage.removeItem(CART_KEY);
-      updateCartUI();
+    async function loadDishes(){
+      const res = await fetch("data/dishes.json", { cache: "no-store" });
+      if(!res.ok) throw new Error("Failed to load data/dishes.json");
+      const data = await res.json();
+      if(!Array.isArray(data)) throw new Error("dishes.json must be an array");
+      return data;
     }
 
-    function cartCount(cart){
-      return Object.values(cart).reduce((a,b)=>a+b,0);
-    }
+    function loadCart(){ try { return JSON.parse(localStorage.getItem(CART_KEY) || "{}"); } catch { return {}; } }
+    function saveCart(cart){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); updateCartUI(); }
+    function addToCart(id){ const cart = loadCart(); cart[id] = (cart[id] || 0) + 1; saveCart(cart); openCart(); }
+    function setQty(id, qty){ const cart = loadCart(); if(qty <= 0) delete cart[id]; else cart[id] = qty; saveCart(cart); }
+    function clearCart(){ localStorage.removeItem(CART_KEY); updateCartUI(); }
+    function cartCount(cart){ return Object.values(cart).reduce((a,b)=>a+b,0); }
     function cartTotal(cart){
       let total = 0;
       for(const [id, qty] of Object.entries(cart)){
@@ -236,20 +181,16 @@
       }
       return total;
     }
-    function formatKsh(n){
-      return "KSh " + Number(n).toLocaleString("en-KE");
-    }
+    function formatKsh(n){ return "KSh " + Number(n).toLocaleString("en-KE"); }
 
-    // =========================
-    // MENU RENDER
-    // =========================
-    function openDish(id){
-      location.href = `ar.html?dish=${encodeURIComponent(id)}`;
-    }
+    function openDish(id){ location.href = `ar.html?dish=${encodeURIComponent(id)}`; }
 
     function renderMenu(){
       const term = q.value.trim().toLowerCase();
       menuEl.innerHTML = "";
+      errEl.textContent = "";
+
+      const cats = [...new Set(dishes.map(d => d.cat))];
 
       cats.forEach(cat => {
         const section = document.createElement("div");
@@ -262,11 +203,10 @@
 
         dishes
           .filter(d => d.cat === cat)
-          .filter(d => !term || (d.name.toLowerCase().includes(term) || d.desc.toLowerCase().includes(term)))
+          .filter(d => !term || (String(d.name||"").toLowerCase().includes(term) || String(d.desc||"").toLowerCase().includes(term)))
           .forEach(d => {
             const card = document.createElement("div");
             card.className = "card";
-
             card.innerHTML = `
               <div class="thumb" style="background-image:url('${d.thumb}')"></div>
               <div class="body">
@@ -281,10 +221,8 @@
                 </div>
               </div>
             `;
-
             card.querySelector('[data-action="ar"]').onclick = (e) => { e.stopPropagation(); openDish(d.id); };
             card.querySelector('[data-action="add"]').onclick = (e) => { e.stopPropagation(); addToCart(d.id); };
-
             grid.appendChild(card);
           });
 
@@ -295,9 +233,6 @@
 
     q.addEventListener("input", renderMenu);
 
-    // =========================
-    // CART DRAWER UI
-    // =========================
     const overlay = document.getElementById("overlay");
     const drawer = document.getElementById("drawer");
     const openCartBtn = document.getElementById("openCartBtn");
@@ -308,28 +243,17 @@
     const clearCartBtn = document.getElementById("clearCartBtn");
     const checkoutBtn = document.getElementById("checkoutBtn");
 
-    function openCart(){
-      overlay.classList.add("show");
-      drawer.classList.add("show");
-      updateCartUI();
-    }
-    function closeCart(){
-      overlay.classList.remove("show");
-      drawer.classList.remove("show");
-    }
+    function openCart(){ overlay.classList.add("show"); drawer.classList.add("show"); updateCartUI(); }
+    function closeCart(){ overlay.classList.remove("show"); drawer.classList.remove("show"); }
 
     overlay.onclick = closeCart;
     openCartBtn.onclick = openCart;
     closeCartBtn.onclick = closeCart;
-
     clearCartBtn.onclick = () => clearCart();
 
     checkoutBtn.onclick = () => {
       const cart = loadCart();
-      if(cartCount(cart) === 0){
-        alert("Cart is empty.");
-        return;
-      }
+      if(cartCount(cart) === 0){ alert("Cart is empty."); return; }
       const payload = encodeURIComponent(btoa(JSON.stringify(cart)));
       location.href = `ar.html?checkout=1&cart=${payload}`;
     };
@@ -373,9 +297,16 @@
       });
     }
 
-    // INIT
-    renderMenu();
-    updateCartUI();
+    (async function init(){
+      try{
+        dishes = await loadDishes();
+        renderMenu();
+        updateCartUI();
+      }catch(e){
+        errEl.textContent = "Error: " + (e.message || e);
+        console.error(e);
+      }
+    })();
   </script>
 </body>
 </html>
