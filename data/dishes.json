@@ -72,6 +72,15 @@
     "thumb": "assets/thumbs/burger.png"
   },
   {
+    "id": "burger-drink",
+    "cat": "Mains",
+    "name": "Burger + Drink",
+    "price": 900,
+    "desc": "Combo meal (3D)",
+    "model": "assets/models/Burgerd rink.glb",
+    "thumb": "assets/thumbs/burger.png"
+  },
+  {
     "id": "avocado",
     "cat": "Fruits",
     "name": "Avocado",
@@ -188,13 +197,4 @@
     "model": "assets/models/pasta with meatballs and sausage.glb",
     "thumb": "assets/thumbs/pasta with meatballs and sausage.png"
   }
-{
-  "id": "burger-drink",
-  "cat": "Mains",
-  "name": "Burger + Drink",
-  "price": 900,
-  "desc": "Combo meal (3D)",
-  "model": "assets/models/burger-drink.glb",
-  "thumb": "assets/thumbs/burger.png"
-}
 ]
