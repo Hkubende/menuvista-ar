@@ -1,169 +1,209 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MenuVista • Dashboard</title>
-  <style>
-    :root{color-scheme:dark}
-    body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
-    .logo{font-weight:900;font-size:18px}
-    .sub{opacity:.8;font-size:13px;margin-top:4px}
-    .btn{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font-weight:900;cursor:pointer}
-    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-    @media(min-width:860px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
-    .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);border-radius:18px;padding:12px}
-    .k{opacity:.8;font-size:12px}
-    .v{font-weight:900;font-size:20px;margin-top:6px;color:#FF7A2F}
-    h2{margin:18px 0 10px;font-size:16px}
-    table{width:100%;border-collapse:separate;border-spacing:0 10px}
-    th{opacity:.8;font-size:12px;text-align:left;font-weight:800;padding:0 10px}
-    td{padding:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25)}
-    tr td:first-child{border-radius:14px 0 0 14px}
-    tr td:last-child{border-radius:0 14px 14px 0}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:900;font-size:12px}
-    .muted{opacity:.75;font-size:12px;margin-top:10px;line-height:1.35}
-    .warn{color:#ffd28a}
-    .rowActions{display:flex;gap:8px;flex-wrap:wrap}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MenuVista • Dashboard</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;font-family:system-ui;background:#0b0b10;color:#fff}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px}
+.sub{opacity:.8;font-size:13px;margin-top:4px}
+.btn{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font-weight:900;cursor:pointer;text-decoration:none;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+@media(min-width:860px){.grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+.card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.35);border-radius:18px;padding:12px}
+.k{opacity:.8;font-size:12px}
+.v{font-weight:900;font-size:20px;margin-top:6px;color:#FF7A2F}
+h2{margin:18px 0 10px;font-size:16px}
+table{width:100%;border-collapse:separate;border-spacing:0 10px}
+th{opacity:.8;font-size:12px;text-align:left;font-weight:800;padding:0 10px}
+td{padding:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);vertical-align:top}
+tr td:first-child{border-radius:14px 0 0 14px}
+tr td:last-child{border-radius:0 14px 14px 0}
+.pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-weight:900;font-size:12px;margin:0 10px 10px 0}
+.muted{opacity:.75;font-size:12px;margin-top:10px;line-height:1.35}
+.inp{width:120px;padding:10px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-weight:900;outline:none}
+.smallBtn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font-weight:900;cursor:pointer}
+.rowActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.warn{color:#ffd28a}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <div class="logo">MenuVista • Dashboard</div>
-        <div class="sub">Local analytics (this browser only). No backend.</div>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="index.html">← Back to Menu</a>
-        <button class="btn" id="resetBtn">Reset Analytics</button>
-      </div>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="logo">MenuVista • Dashboard</div>
+      <div class="sub">Local analytics + price overrides (this browser only).</div>
     </div>
-
-    <div class="grid">
-      <div class="card"><div class="k">Total dishes</div><div class="v" id="totalDishes">—</div></div>
-      <div class="card"><div class="k">Total views</div><div class="v" id="totalViews">—</div></div>
-      <div class="card"><div class="k">Top dish</div><div class="v" id="topDish">—</div></div>
-      <div class="card"><div class="k">Top views</div><div class="v" id="topViews">—</div></div>
-    </div>
-
-    <h2>Most Viewed (Top 5)</h2>
-    <div id="topList"></div>
-
-    <h2>All Dishes</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Dish</th>
-          <th>Category</th>
-          <th>Price</th>
-          <th>Views</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-
-    <div class="muted">
-      <span class="warn">Note:</span> Views come from <code>localStorage</code> keys like <code>mv_views_&lt;id&gt;</code>.
-      If you test on another phone/browser, it will have different analytics.
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn" href="index.html">← Back to Menu</a>
+      <button class="btn" id="resetViewsBtn">Reset Views</button>
+      <button class="btn" id="clearPricesBtn">Clear Price Overrides</button>
     </div>
   </div>
 
-  <script>
-    const DISHES_URL = "data/dishes.json";
+  <div class="grid">
+    <div class="card"><div class="k">Total dishes</div><div class="v" id="totalDishes">—</div></div>
+    <div class="card"><div class="k">Total views</div><div class="v" id="totalViews">—</div></div>
+    <div class="card"><div class="k">Top dish</div><div class="v" id="topDish">—</div></div>
+    <div class="card"><div class="k">Top views</div><div class="v" id="topViews">—</div></div>
+  </div>
 
-    const fmtKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
-    const viewsKey = (id) => `mv_views_${id}`;
+  <h2>Most Viewed (Top 5)</h2>
+  <div id="topList"></div>
 
-    function getViews(id){
-      return parseInt(localStorage.getItem(viewsKey(id)) || "0", 10);
-    }
+  <h2>All Dishes • Edit Prices</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Dish</th>
+        <th>Category</th>
+        <th>Base Price</th>
+        <th>Override</th>
+        <th>Views</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 
-    function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+  <div class="muted">
+    <span class="warn">Note:</span> Price overrides are stored in <code>localStorage</code> and used by <code>index.html</code> and <code>ar.html</code>.
+    If you open on another phone/browser, the prices will not carry over (until you add a backend).
+  </div>
+</div>
 
-    async function loadDishes(){
-      const res = await fetch(DISHES_URL, { cache: "no-store" });
-      if(!res.ok) throw new Error(`Failed to load ${DISHES_URL} (${res.status})`);
-      return await res.json();
-    }
+<script>
+const DISHES_URL = "data/dishes.json";
+const PRICE_OVERRIDES_KEY = "mv_price_overrides_v1";
 
-    function renderTopList(sorted){
-      const top = sorted.slice(0,5);
-      const el = document.getElementById("topList");
-      if(top.length === 0){
-        el.innerHTML = `<div class="pill">No views yet</div>`;
-        return;
+const fmtKsh = (n) => "KSh " + Number(n).toLocaleString("en-KE");
+const viewsKey = (id) => `mv_views_${id}`;
+
+function getViews(id){ return parseInt(localStorage.getItem(viewsKey(id)) || "0", 10); }
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+
+function loadOverrides(){
+  try { return JSON.parse(localStorage.getItem(PRICE_OVERRIDES_KEY) || "{}"); }
+  catch { return {}; }
+}
+function saveOverrides(o){
+  localStorage.setItem(PRICE_OVERRIDES_KEY, JSON.stringify(o));
+}
+
+async function loadDishes(){
+  const res = await fetch(DISHES_URL, { cache:"no-store" });
+  if(!res.ok) throw new Error(`Failed to load ${DISHES_URL} (${res.status})`);
+  return await res.json();
+}
+
+function renderTopList(sorted){
+  const top = sorted.slice(0,5);
+  const el = document.getElementById("topList");
+  if(top.length === 0){
+    el.innerHTML = `<div class="pill">No views yet</div>`;
+    return;
+  }
+  el.innerHTML = top.map(d =>
+    `<div class="pill">${d.name} • <span style="color:#FF7A2F">${getViews(d.id)}</span></div>`
+  ).join("");
+}
+
+function mainRender(dishes){
+  const overrides = loadOverrides();
+
+  const totalDishes = dishes.length;
+  const views = dishes.map(d => getViews(d.id));
+  const totalViews = sum(views);
+
+  const sorted = [...dishes].sort((a,b)=>getViews(b.id)-getViews(a.id));
+  const top = sorted[0];
+
+  document.getElementById("totalDishes").textContent = totalDishes;
+  document.getElementById("totalViews").textContent = totalViews;
+  document.getElementById("topDish").textContent = top ? top.name : "—";
+  document.getElementById("topViews").textContent = top ? getViews(top.id) : "—";
+
+  renderTopList(sorted);
+
+  const tbody = document.getElementById("rows");
+  tbody.innerHTML = "";
+
+  dishes.forEach(d => {
+    const base = Number(d.price || 0);
+    const ov = (overrides[d.id] != null) ? Number(overrides[d.id]) : "";
+    const v = getViews(d.id);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><b>${d.name}</b><div style="opacity:.75;font-size:12px">${d.id}</div></td>
+      <td>${d.cat || "Other"}</td>
+      <td>${fmtKsh(base)}</td>
+      <td>
+        <input class="inp" type="number" min="0" step="10" value="${ov}" placeholder="e.g. 950" data-ov="${d.id}" />
+      </td>
+      <td><b style="color:#FF7A2F">${v}</b></td>
+      <td>
+        <div class="rowActions">
+          <a class="smallBtn" href="ar.html?dish=${encodeURIComponent(d.id)}">Open AR</a>
+          <button class="smallBtn" data-save="${d.id}">Save</button>
+          <button class="smallBtn" data-clear="${d.id}">Clear</button>
+        </div>
+      </td>
+    `;
+
+    tr.querySelector(`[data-save="${d.id}"]`).onclick = () => {
+      const input = tr.querySelector(`[data-ov="${d.id}"]`);
+      const val = (input.value || "").trim();
+      const o = loadOverrides();
+      if(val === ""){
+        delete o[d.id];
+      }else{
+        o[d.id] = Number(val);
       }
-      el.innerHTML = top.map(d =>
-        `<div class="pill" style="margin:0 10px 10px 0;display:inline-flex">
-          ${d.name} • <span style="color:#FF7A2F">${getViews(d.id)}</span>
-        </div>`
-      ).join("");
-    }
+      saveOverrides(o);
+      alert("Saved.");
+      main(); // refresh
+    };
 
-    function renderTable(dishes){
-      const tbody = document.getElementById("rows");
-      tbody.innerHTML = "";
-
-      dishes.forEach(d => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><b>${d.name}</b><div style="opacity:.75;font-size:12px">${d.id}</div></td>
-          <td>${d.cat || "-"}</td>
-          <td>${fmtKsh(d.price || 0)}</td>
-          <td><b style="color:#FF7A2F">${getViews(d.id)}</b></td>
-          <td>
-            <div class="rowActions">
-              <a class="btn" href="ar.html?dish=${encodeURIComponent(d.id)}">Open AR</a>
-              <button class="btn" data-clear="${d.id}">Clear views</button>
-            </div>
-          </td>
-        `;
-        tr.querySelector(`[data-clear="${d.id}"]`).onclick = () => {
-          localStorage.removeItem(viewsKey(d.id));
-          main(); // re-render
-        };
-        tbody.appendChild(tr);
-      });
-    }
-
-    async function main(){
-      const dishes = await loadDishes();
-
-      // metrics
-      const totalDishes = dishes.length;
-      const views = dishes.map(d => getViews(d.id));
-      const totalViews = sum(views);
-
-      const sorted = [...dishes].sort((a,b) => getViews(b.id) - getViews(a.id));
-      const top = sorted[0];
-      document.getElementById("totalDishes").textContent = totalDishes;
-      document.getElementById("totalViews").textContent = totalViews;
-      document.getElementById("topDish").textContent = top ? top.name : "—";
-      document.getElementById("topViews").textContent = top ? getViews(top.id) : "—";
-
-      renderTopList(sorted);
-      renderTable(dishes);
-    }
-
-    document.getElementById("resetBtn").onclick = () => {
-      // remove only mv_views_* keys
-      const keys = [];
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith("mv_views_")) keys.push(k);
-      }
-      keys.forEach(k => localStorage.removeItem(k));
+    tr.querySelector(`[data-clear="${d.id}"]`).onclick = () => {
+      const o = loadOverrides();
+      delete o[d.id];
+      saveOverrides(o);
       main();
     };
 
-    main().catch(err => {
-      alert(err.message);
-      console.error(err);
-    });
-  </script>
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById("resetViewsBtn").onclick = () => {
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith("mv_views_")) keys.push(k);
+  }
+  keys.forEach(k => localStorage.removeItem(k));
+  main();
+};
+
+document.getElementById("clearPricesBtn").onclick = () => {
+  localStorage.removeItem(PRICE_OVERRIDES_KEY);
+  main();
+};
+
+async function main(){
+  const dishes = await loadDishes();
+  mainRender(dishes);
+}
+
+main().catch(err => {
+  alert(err.message);
+  console.error(err);
+});
+</script>
 </body>
 </html>
